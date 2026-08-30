@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Gül & Kağan — birlikte cevapladığımız enler ve biriktirdiğimiz anılar.">
+  <title>Gül & Kağan | Bizim En'lerimiz</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="ambient ambient-one"></div>
+  <div class="ambient ambient-two"></div>
+
+  <main class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="index.html">
+        <span class="brand-heart">♥</span>
+        <span>Gül <b>&</b> Kağan </span>
+      </a>
+      <button class="ghost-btn" id="resetBtn" title="Bu cihazdaki tüm cevapları sil">Sıfırla</button>
+    </header>
+
+    <section class="hero">
+      <div class="eyebrow">BİZİM EN'LERİMİZ · 2026</div>
+      <h1>Bugünün cevapları,<br><em>yarının anıları.</em></h1>
+      <p>Birbirinizi ne kadar iyi tanıdığınızı görün, cevaplarınızın yıllar içinde nasıl değiştiğini birlikte keşfedin.</p>
+
+      <div class="hero-actions">
+        <a class="primary-btn" href="#questions">Cevaplamaya başla <span>→</span></a>
+        <button class="secondary-btn" id="continueBtn">Kaldığım yerden devam et</button>
+      </div>
+    </section>
+
+    <section class="stats" aria-label="İlerleme">
+      <div class="stat-card">
+        <span class="stat-icon">♡</span>
+        <div><strong id="answeredCount">0</strong><small>Cevaplanan</small></div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-icon">✦</span>
+        <div><strong id="totalCount">0</strong><small>Toplam soru</small></div>
+      </div>
+      <div class="stat-card progress-card">
+        <div class="progress-top"><strong id="progressText">0%</strong><small>Tamamlandı</small></div>
+        <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+      </div>
+    </section>
+
+    <section class="memory-note">
+      <div class="note-mark">“</div>
+      <div>
+        <p>Bir yıl sonra bu sayfaya tekrar geldiğimizde, bugün kim olduğumuzu hatırlayalım.</p>
+        <span>— Bizden, gelecekteki bize.</span>
+      </div>
+    </section>
+
+    <section id="questions" class="questions-section">
+      <div class="section-heading">
+        <div>
+          <div class="eyebrow">SORULAR</div>
+          <h2>Şimdi sıra sizde.</h2>
+        </div>
+        <div class="year-pill">2026</div>
+      </div>
+
+      <div class="filters" id="filters"></div>
+      <div id="questionList" class="question-list"></div>
+    </section>
+
+    <footer>
+      <p>♥ Gül & Kağan için sevgiyle yapıldı.</p>
+      <p class="privacy">Cevaplarınız şu an bu cihazın tarayıcısında saklanır.</p>
+    </footer>
+  </main>
+
+  <div class="toast" id="toast" role="status"></div>
+  <script src="script.js"></script>
+</body>
+</html>
