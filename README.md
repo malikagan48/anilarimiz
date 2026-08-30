@@ -1,11 +1,11 @@
 # 💕 Bizim En'lerimiz
 
-Mustafa & Gül için hazırlanmış, GitHub Pages üzerinde çalışabilen mini anı/cevap uygulaması.
+Kağan & Gül için hazırlanmış, GitHub Pages üzerinde çalışabilen mini anı/cevap uygulaması.
 
 ## Özellikler
 
 - 80+ soru
-- Mustafa ve Gül için ayrı cevap alanları
+- Kağan ve Gül için ayrı cevap alanları
 - Kategori filtreleri
 - İlerleme yüzdesi
 - Otomatik `localStorage` kaydı
@@ -28,7 +28,7 @@ Yani aynı siteyi başka bir telefondan açarsanız cevaplar otomatik olarak gö
 
 İkinci sürümde Supabase ekleyerek:
 - Ortak hesap
-- Mustafa / Gül girişi
+- Kağan / Gül girişi
 - Cevapların bulutta saklanması
 - Telefon/PC arasında senkronizasyon
 - Yıllara göre cevap geçmişi
