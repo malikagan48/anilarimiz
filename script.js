@@ -15,8 +15,7 @@ const supabaseClient =
    AYARLAR
 ===================================================== */
 
-const CURRENT_YEAR =
-  new Date().getFullYear();
+const CURRENT_YEAR = new Date().getFullYear();
 
 let currentUser = null;
 let currentProfile = null;
@@ -28,6 +27,7 @@ let currentFilter = "all";
 let selectedPerson = "gul";
 
 let isLoadingApplication = false;
+let toastTimer = null;
 
 
 /* =====================================================
@@ -105,7 +105,6 @@ async function init() {
 
   setupFilters();
 
-
   if (loginBtn) {
     loginBtn.addEventListener(
       "click",
@@ -113,9 +112,7 @@ async function init() {
     );
   }
 
-
   if (passwordInput) {
-
     passwordInput.addEventListener(
       "keydown",
       event => {
@@ -126,31 +123,23 @@ async function init() {
 
       }
     );
-
   }
-
 
   const logoutBtn =
     document.getElementById("logoutBtn");
 
-
   if (logoutBtn) {
-
     logoutBtn.addEventListener(
       "click",
       logout
     );
-
   }
 
-
   if (continueBtn) {
-
     continueBtn.addEventListener(
       "click",
       continueFromWhereLeft
     );
-
   }
 
 
@@ -176,7 +165,6 @@ async function init() {
       );
 
       return;
-
     }
 
 
@@ -186,13 +174,13 @@ async function init() {
 
     if (session) {
 
-      console.log(
-        "Mevcut session bulundu:",
-        session.user.email
-      );
-
       currentUser =
         session.user;
+
+      console.log(
+        "Mevcut session bulundu:",
+        currentUser.email
+      );
 
       await loadApplication();
 
@@ -201,6 +189,7 @@ async function init() {
       showLoginScreen();
 
     }
+
 
   } catch (error) {
 
@@ -226,10 +215,14 @@ async function init() {
 function setYear() {
 
   const heroYear =
-    document.getElementById("heroYear");
+    document.getElementById(
+      "heroYear"
+    );
 
   const yearDisplay =
-    document.getElementById("yearDisplay");
+    document.getElementById(
+      "yearDisplay"
+    );
 
 
   if (heroYear) {
@@ -247,7 +240,7 @@ function setYear() {
 
 
 /* =====================================================
-   GÜL / KAĞAN SEÇİMİ
+   GÜL / KAĞAN
 ===================================================== */
 
 function setupPersonButtons() {
@@ -265,26 +258,15 @@ function setupPersonButtons() {
       function () {
 
         buttons.forEach(btn => {
-
-          btn.classList.remove(
-            "active"
-          );
-
+          btn.classList.remove("active");
         });
 
-
-        this.classList.add(
-          "active"
-        );
-
+        this.classList.add("active");
 
         selectedPerson =
           this.dataset.person;
 
-
         updateLoginButton();
-
-        clearLoginError();
 
       }
     );
@@ -300,12 +282,13 @@ function setupPersonButtons() {
 
   if (gulButton) {
 
-    buttons.forEach(btn =>
-      btn.classList.remove("active")
-    );
+    buttons.forEach(btn => {
+      btn.classList.remove("active");
+    });
 
     gulButton.classList.add("active");
 
+    selectedPerson = "gul";
   }
 
 
@@ -320,8 +303,9 @@ function setupPersonButtons() {
 
 function updateLoginButton() {
 
-  if (!loginBtn)
+  if (!loginBtn) {
     return;
+  }
 
 
   const name =
@@ -342,18 +326,12 @@ function updateLoginButton() {
 
 async function login() {
 
-  if (!loginBtn)
-    return;
-
-
   clearLoginError();
-
 
   const email =
     emailInput
       ? emailInput.value.trim()
       : "";
-
 
   const password =
     passwordInput
@@ -368,7 +346,6 @@ async function login() {
     );
 
     return;
-
   }
 
 
@@ -385,49 +362,34 @@ async function login() {
       error
     } =
       await supabaseClient.auth.signInWithPassword({
-
         email,
         password
-
       });
 
 
     if (error) {
 
       console.error(
-        "SUPABASE LOGIN HATASI:",
+        "LOGIN HATASI:",
         error
       );
-
 
       showLoginError(
         "Giriş başarısız: " +
         error.message
       );
 
-
-      loginBtn.disabled = false;
-
-      updateLoginButton();
-
       return;
-
     }
 
 
     if (!data?.user) {
 
       showLoginError(
-        "Giriş başarılı görünüyor fakat kullanıcı bilgisi alınamadı."
+        "Kullanıcı bilgisi alınamadı."
       );
 
-
-      loginBtn.disabled = false;
-
-      updateLoginButton();
-
       return;
-
     }
 
 
@@ -436,21 +398,13 @@ async function login() {
 
 
     console.log(
-      "GİRİŞ BAŞARILI:",
-      currentUser.id,
-      currentUser.email
+      "Giriş başarılı:",
+      currentUser.id
     );
 
 
-    const result =
-      await loadApplication();
+    await loadApplication();
 
-
-    if (!result) {
-
-      await supabaseClient.auth.signOut();
-
-    }
 
   } catch (error) {
 
@@ -459,11 +413,11 @@ async function login() {
       error
     );
 
-
     showLoginError(
       "Beklenmeyen giriş hatası: " +
       error.message
     );
+
 
   } finally {
 
@@ -482,12 +436,14 @@ async function login() {
 
 async function loadApplication() {
 
-  if (!currentUser)
-    return false;
+  if (!currentUser) {
+    return;
+  }
 
 
-  if (isLoadingApplication)
-    return false;
+  if (isLoadingApplication) {
+    return;
+  }
 
 
   isLoadingApplication = true;
@@ -496,9 +452,21 @@ async function loadApplication() {
   try {
 
     /*
-      Profil yüklenmeden sorular kesinlikle
-      uygulama ekranında gösterilmiyor.
+      Login olmadan uygulama gösterilmiyor.
+      Ancak login başarılı olduktan sonra
+      uygulama açılıyor.
     */
+
+    loginScreen.classList.add(
+      "hidden"
+    );
+
+    appShell.classList.remove(
+      "hidden"
+    );
+
+
+    /* PROFİL */
 
     const profileResult =
       await loadProfile();
@@ -506,55 +474,16 @@ async function loadApplication() {
 
     if (!profileResult.success) {
 
-      showLoginScreen();
-
-      showLoginError(
+      showApplicationError(
+        "Profil yüklenemedi",
         profileResult.message
       );
 
-      return false;
-
+      return;
     }
 
 
-    /*
-      Seçilen Gül / Kağan ile gerçek profil
-      aynı kişi mi kontrol ediyoruz.
-    */
-
-    const profileName =
-      normalizePersonName(
-        currentProfile?.name
-      );
-
-
-    const selectedName =
-      selectedPerson === "gul"
-        ? "gul"
-        : "kagan";
-
-
-    if (
-      profileName &&
-      profileName !== selectedName
-    ) {
-
-      await supabaseClient.auth.signOut();
-
-      showLoginScreen();
-
-      showLoginError(
-        `Bu hesap ${currentProfile?.name || "başka bir kullanıcı"} hesabı. Lütfen giriş ekranında doğru kişiyi seç.`
-      );
-
-      return false;
-
-    }
-
-
-    /*
-      Sorular
-    */
+    /* SORULAR */
 
     const questionResult =
       await loadQuestions();
@@ -562,20 +491,16 @@ async function loadApplication() {
 
     if (!questionResult.success) {
 
-      showLoginScreen();
-
-      showLoginError(
+      showApplicationError(
+        "Sorular yüklenemedi",
         questionResult.message
       );
 
-      return false;
-
+      return;
     }
 
 
-    /*
-      Cevaplar
-    */
+    /* CEVAPLAR */
 
     const answerResult =
       await loadAnswers();
@@ -589,21 +514,7 @@ async function loadApplication() {
       );
 
       answers = [];
-
     }
-
-
-    /*
-      Artık uygulamayı gösteriyoruz.
-    */
-
-    loginScreen.classList.add(
-      "hidden"
-    );
-
-    appShell.classList.remove(
-      "hidden"
-    );
 
 
     renderQuestions();
@@ -613,25 +524,18 @@ async function loadApplication() {
     updateUserInterface();
 
 
-    return true;
-
   } catch (error) {
 
     console.error(
-      "UYGULAMA YÜKLEME HATASI:",
+      "Uygulama yükleme hatası:",
       error
     );
 
-
-    showLoginScreen();
-
-    showLoginError(
-      "Uygulama yüklenemedi: " +
+    showApplicationError(
+      "Uygulama yüklenemedi",
       error.message
     );
 
-
-    return false;
 
   } finally {
 
@@ -652,7 +556,8 @@ async function loadProfile() {
 
     return {
       success: false,
-      message: "Aktif kullanıcı bulunamadı."
+      message:
+        "Aktif kullanıcı bulunamadı."
     };
 
   }
@@ -681,19 +586,16 @@ async function loadProfile() {
         error
       );
 
-
       return {
 
         success: false,
 
         message:
-          `Profil yüklenemedi.
+          `Supabase profil hatası:
 
-Supabase hatası:
 ${error.message}
 
-Kod:
-${error.code || "yok"}
+Kod: ${error.code || "yok"}
 
 Detay:
 ${error.details || "yok"}
@@ -713,13 +615,13 @@ ${error.hint || "yok"}`
         success: false,
 
         message:
-          `Bu hesabın profil bilgisi bulunamadı.
+          `Bu kullanıcı profiles tablosunda bulunamadı.
 
 Giriş yapan User ID:
+
 ${currentUser.id}
 
-profiles tablosundaki id ile
-auth.users id aynı olmalıdır.`
+profiles.id ile auth.users.id aynı olmalı.`
 
       };
 
@@ -730,34 +632,17 @@ auth.users id aynı olmalıdır.`
       data;
 
 
-    console.log(
-      "PROFİL:",
-      currentProfile
-    );
-
-
     return {
-
       success: true,
       data
-
     };
+
 
   } catch (error) {
 
-    console.error(
-      "Profil exception:",
-      error
-    );
-
-
     return {
-
       success: false,
-
-      message:
-        error.message
-
+      message: error.message
     };
 
   }
@@ -766,48 +651,7 @@ auth.users id aynı olmalıdır.`
 
 
 /* =====================================================
-   PROFİL İSİM NORMALİZASYONU
-===================================================== */
-
-function normalizePersonName(name) {
-
-  if (!name)
-    return "";
-
-
-  const value =
-    String(name)
-      .trim()
-      .toLocaleLowerCase("tr-TR");
-
-
-  if (
-    value.includes("gül") ||
-    value.includes("gul")
-  ) {
-
-    return "gul";
-
-  }
-
-
-  if (
-    value.includes("kağan") ||
-    value.includes("kagan")
-  ) {
-
-    return "kagan";
-
-  }
-
-
-  return value;
-
-}
-
-
-/* =====================================================
-   SORULAR
+   SORULARI YÜKLE
 ===================================================== */
 
 async function loadQuestions() {
@@ -821,7 +665,7 @@ async function loadQuestions() {
       await supabaseClient
         .from("questions")
         .select(
-          "id, question, sort_order, active"
+          "id,question,sort_order,active,category,emoji,placeholder"
         )
         .eq(
           "active",
@@ -838,22 +682,23 @@ async function loadQuestions() {
     if (error) {
 
       console.error(
-        "SORULAR HATASI:",
+        "SORU HATASI:",
         error
       );
-
 
       return {
 
         success: false,
 
         message:
-          `Sorular yüklenemedi.
+          `Supabase soru hatası:
 
 ${error.message}
 
-Kod:
-${error.code || "yok"}`
+Kod: ${error.code || "yok"}
+
+Detay:
+${error.details || "yok"}`
 
       };
 
@@ -865,31 +710,22 @@ ${error.code || "yok"}`
 
 
     console.log(
-      "SORU SAYISI:",
+      "Toplam soru:",
       questions.length
     );
 
 
     return {
-
       success: true,
       data: questions
-
     };
+
 
   } catch (error) {
 
-    console.error(
-      "Sorular exception:",
-      error
-    );
-
-
     return {
-
       success: false,
       message: error.message
-
     };
 
   }
@@ -898,7 +734,7 @@ ${error.code || "yok"}`
 
 
 /* =====================================================
-   CEVAPLAR
+   CEVAPLARI YÜKLE
 ===================================================== */
 
 async function loadAnswers() {
@@ -906,12 +742,9 @@ async function loadAnswers() {
   if (!currentUser) {
 
     return {
-
       success: false,
-
       message:
         "Kullanıcı bulunamadı."
-
     };
 
   }
@@ -925,9 +758,7 @@ async function loadAnswers() {
     } =
       await supabaseClient
         .from("answers")
-        .select(
-          "id, user_id, question_id, year, answer, updated_at"
-        )
+        .select("*")
         .eq(
           "year",
           CURRENT_YEAR
@@ -937,23 +768,14 @@ async function loadAnswers() {
     if (error) {
 
       console.error(
-        "CEVAPLAR HATASI:",
+        "CEVAP HATASI:",
         error
       );
 
-
       return {
-
         success: false,
-
         message:
-          `Cevaplar yüklenemedi.
-
-${error.message}
-
-Kod:
-${error.code || "yok"}`
-
+          error.message
       };
 
     }
@@ -963,32 +785,18 @@ ${error.code || "yok"}`
       data || [];
 
 
-    console.log(
-      "CEVAP SAYISI:",
-      answers.length
-    );
-
-
     return {
-
       success: true,
       data: answers
-
     };
+
 
   } catch (error) {
 
-    console.error(
-      "Cevap exception:",
-      error
-    );
-
-
     return {
-
       success: false,
-      message: error.message
-
+      message:
+        error.message
     };
 
   }
@@ -997,19 +805,23 @@ ${error.code || "yok"}`
 
 
 /* =====================================================
-   KULLANICI ARAYÜZÜ
+   ARAYÜZ
 ===================================================== */
 
 function updateUserInterface() {
 
-  if (!currentProfile)
+  if (!currentProfile) {
     return;
+  }
 
 
   const name =
     currentProfile.name ||
-    currentUser?.email ||
-    "Kullanıcı";
+    (
+      currentProfile.email ||
+      currentUser?.email ||
+      "Kullanıcı"
+    );
 
 
   if (welcomeUser) {
@@ -1039,8 +851,9 @@ function updateUserInterface() {
 
 function renderQuestions() {
 
-  if (!questionList)
+  if (!questionList) {
     return;
+  }
 
 
   let visibleQuestions =
@@ -1077,61 +890,89 @@ function renderQuestions() {
   }
 
 
-  if (
-    !visibleQuestions.length
-  ) {
+  if (!visibleQuestions.length) {
 
     questionList.innerHTML = `
 
       <div class="empty">
 
         <div style="
-          font-size:40px;
-          margin-bottom:10px;
+          font-size:42px;
+          margin-bottom:12px;
         ">
           ♡
         </div>
 
-        ${
-          questions.length === 0
-            ? `
-              <strong>
-                Henüz soru bulunamadı.
-              </strong>
-
-              <p style="
-                margin-top:10px;
-                font-size:12px;
-              ">
-                Supabase'de questions tablosunu
-                kontrol et.
-              </p>
-            `
-            : `
-              Bu filtrede gösterilecek soru yok.
-            `
-        }
+        <strong>
+          ${
+            questions.length === 0
+              ? "Henüz soru bulunamadı."
+              : "Bu filtrede gösterilecek soru yok."
+          }
+        </strong>
 
       </div>
 
     `;
 
     return;
-
   }
 
 
+  /*
+    KATEGORİLERE AYIR
+  */
+
+  const groups = [];
+
+
+  visibleQuestions.forEach(question => {
+
+    const category =
+      question.category ||
+      "Diğer";
+
+
+    let group =
+      groups.find(
+        item =>
+          item.category === category
+      );
+
+
+    if (!group) {
+
+      group = {
+        category,
+        questions: []
+      };
+
+      groups.push(group);
+
+    }
+
+
+    group.questions.push(
+      question
+    );
+
+  });
+
+
   questionList.innerHTML =
-    visibleQuestions
+    groups
       .map(
-        (question, index) =>
-          createQuestionCard(
-            question,
-            index
+        group =>
+          createCategory(
+            group
           )
       )
       .join("");
 
+
+  /*
+    KAYDET BUTONLARI
+  */
 
   document
     .querySelectorAll(".save-btn")
@@ -1151,6 +992,87 @@ function renderQuestions() {
       );
 
     });
+
+}
+
+
+/* =====================================================
+   KATEGORİ
+===================================================== */
+
+function createCategory(group) {
+
+  const categoryIcons = {
+
+    "Film & Dizi": "🎬",
+
+    "Oyun": "🎮",
+
+    "Yemek": "🍽️",
+
+    "Kitap & Şiir": "📖",
+
+    "Müzik": "🎵",
+
+    "Birbirimiz": "❤️",
+
+    "Hayaller": "🌟",
+
+    "Tahmin": "🎯",
+
+    "Gelecek": "🔮"
+
+  };
+
+
+  const icon =
+    categoryIcons[
+      group.category
+    ] || "♡";
+
+
+  return `
+
+    <div class="question-category">
+
+      <div class="category-heading">
+
+        <div class="category-icon">
+          ${icon}
+        </div>
+
+        <div>
+
+          <div class="eyebrow">
+            ${escapeHtml(group.category)}
+          </div>
+
+          <h3>
+            ${escapeHtml(group.category)}
+          </h3>
+
+        </div>
+
+      </div>
+
+
+      <div class="category-questions">
+
+        ${group.questions
+          .map(
+            (question, index) =>
+              createQuestionCard(
+                question,
+                index
+              )
+          )
+          .join("")}
+
+      </div>
+
+    </div>
+
+  `;
 
 }
 
@@ -1181,33 +1103,54 @@ function createQuestionCard(
 
 
   const partnerName =
-    normalizePersonName(
-      currentProfile?.name
-    ) === "gul"
+    currentProfile?.name === "Gül"
       ? "Kağan"
       : "Gül";
 
 
+  const emoji =
+    question.emoji ||
+    "♡";
+
+
+  const placeholder =
+    question.placeholder ||
+    "Cevabını buraya yaz...";
+
+
   return `
 
-    <article class="question-card">
+    <article
+      class="question-card"
+    >
 
       <div class="question-number">
-        ${String(index + 1).padStart(2, "0")}
+
+        ${emoji}
+
+        ${String(
+          question.sort_order ??
+          index + 1
+        ).padStart(2, "0")}
+
       </div>
 
 
       <h3 class="question-title">
+
         ${escapeHtml(
           question.question
         )}
+
       </h3>
 
 
       <textarea
         class="answer-area"
         id="answer-${question.id}"
-        placeholder="Cevabını buraya yaz..."
+        placeholder="${escapeHtml(
+          placeholder
+        )}"
       >${
         myAnswer
           ? escapeHtml(
@@ -1223,11 +1166,13 @@ function createQuestionCard(
           class="saved-label"
           id="saved-${question.id}"
         >
+
           ${
             answered
               ? "✓ Cevabın kayıtlı"
               : "Henüz cevaplanmadı"
           }
+
         </span>
 
 
@@ -1236,11 +1181,13 @@ function createQuestionCard(
           class="save-btn"
           data-question-id="${question.id}"
         >
+
           ${
             answered
               ? "Cevabı güncelle"
               : "Cevabı kaydet"
           }
+
         </button>
 
       </div>
@@ -1253,13 +1200,19 @@ function createQuestionCard(
             <div class="partner-answer">
 
               <div class="partner-title">
-                ♥ ${escapeHtml(partnerName)}'ın cevabı
+
+                ♥ ${escapeHtml(
+                  partnerName
+                )}'ın cevabı
+
               </div>
 
               <p>
+
                 ${escapeHtml(
                   partnerAnswer.answer
                 )}
+
               </p>
 
             </div>
@@ -1276,7 +1229,7 @@ function createQuestionCard(
 
 
 /* =====================================================
-   CEVAP KAYDET / GÜNCELLE
+   CEVAP KAYDET
 ===================================================== */
 
 async function saveAnswer(
@@ -1290,7 +1243,6 @@ async function saveAnswer(
     );
 
     return;
-
   }
 
 
@@ -1300,8 +1252,9 @@ async function saveAnswer(
     );
 
 
-  if (!textarea)
+  if (!textarea) {
     return;
+  }
 
 
   const answer =
@@ -1317,7 +1270,6 @@ async function saveAnswer(
     textarea.focus();
 
     return;
-
   }
 
 
@@ -1327,8 +1279,9 @@ async function saveAnswer(
     );
 
 
-  if (!button)
+  if (!button) {
     return;
+  }
 
 
   button.disabled = true;
@@ -1347,7 +1300,6 @@ async function saveAnswer(
         .upsert(
 
           {
-
             user_id:
               currentUser.id,
 
@@ -1359,14 +1311,11 @@ async function saveAnswer(
 
             answer:
               answer
-
           },
 
           {
-
             onConflict:
               "user_id,question_id,year"
-
           }
 
         );
@@ -1379,20 +1328,12 @@ async function saveAnswer(
         error
       );
 
-
       showToast(
         "Cevap kaydedilemedi: " +
         error.message
       );
 
-
-      button.disabled = false;
-
-      button.textContent =
-        "Cevabı kaydet";
-
       return;
-
     }
 
 
@@ -1415,17 +1356,15 @@ async function saveAnswer(
       error
     );
 
-
     showToast(
       "Cevap kaydedilemedi: " +
       error.message
     );
 
 
-    button.disabled = false;
+  } finally {
 
-    button.textContent =
-      "Cevabı kaydet";
+    button.disabled = false;
 
   }
 
@@ -1440,8 +1379,9 @@ function getMyAnswer(
   questionId
 ) {
 
-  if (!currentUser)
+  if (!currentUser) {
     return null;
+  }
 
 
   return (
@@ -1449,14 +1389,13 @@ function getMyAnswer(
       answer =>
 
         answer.user_id ===
-          currentUser.id &&
+        currentUser.id &&
 
         Number(answer.question_id) ===
-          Number(questionId) &&
+        Number(questionId) &&
 
         Number(answer.year) ===
-          Number(CURRENT_YEAR)
-
+        Number(CURRENT_YEAR)
     ) || null
   );
 
@@ -1471,8 +1410,9 @@ function getPartnerAnswer(
   questionId
 ) {
 
-  if (!currentUser)
+  if (!currentUser) {
     return null;
+  }
 
 
   return (
@@ -1480,14 +1420,13 @@ function getPartnerAnswer(
       answer =>
 
         answer.user_id !==
-          currentUser.id &&
+        currentUser.id &&
 
         Number(answer.question_id) ===
-          Number(questionId) &&
+        Number(questionId) &&
 
         Number(answer.year) ===
-          Number(CURRENT_YEAR)
-
+        Number(CURRENT_YEAR)
     ) || null
   );
 
@@ -1495,7 +1434,7 @@ function getPartnerAnswer(
 
 
 /* =====================================================
-   İSTATİSTİKLER
+   İSTATİSTİK
 ===================================================== */
 
 function updateStats() {
@@ -1602,7 +1541,7 @@ function setupFilters() {
 
 
 /* =====================================================
-   KALDIĞIM YERDEN DEVAM
+   DEVAM ET
 ===================================================== */
 
 function continueFromWhereLeft() {
@@ -1627,11 +1566,8 @@ function continueFromWhereLeft() {
     if (element) {
 
       element.scrollIntoView({
-
         behavior: "smooth",
-
         block: "center"
-
       });
 
 
@@ -1641,6 +1577,7 @@ function continueFromWhereLeft() {
       );
 
     }
+
 
     return;
 
@@ -1656,9 +1593,7 @@ function continueFromWhereLeft() {
   if (questionsSection) {
 
     questionsSection.scrollIntoView({
-
       behavior: "smooth"
-
     });
 
   }
@@ -1705,8 +1640,83 @@ function showLoginScreen() {
 
   isLoadingApplication = false;
 
-
   clearLoginError();
+
+}
+
+
+/* =====================================================
+   UYGULAMA HATASI
+===================================================== */
+
+function showApplicationError(
+  title,
+  message
+) {
+
+  if (appShell) {
+
+    appShell.classList.remove(
+      "hidden"
+    );
+
+  }
+
+
+  if (!questionList) {
+    return;
+  }
+
+
+  questionList.innerHTML = `
+
+    <div
+      class="empty"
+      style="
+        border:1px solid #e9dfdb;
+        border-radius:20px;
+        background:white;
+        padding:35px 25px;
+      "
+    >
+
+      <div style="
+        font-size:42px;
+        margin-bottom:15px;
+      ">
+        ⚠️
+      </div>
+
+
+      <h3 style="
+        margin:0 0 12px;
+        color:#843f4c;
+      ">
+
+        ${escapeHtml(title)}
+
+      </h3>
+
+
+      <p style="
+        white-space:pre-line;
+        text-align:left;
+        max-width:700px;
+        margin:0 auto;
+        line-height:1.7;
+        font-size:13px;
+      ">
+
+        ${escapeHtml(message)}
+
+      </p>
+
+    </div>
+
+  `;
+
+
+  updateStats();
 
 }
 
@@ -1719,12 +1729,12 @@ function showLoginError(
   message
 ) {
 
-  if (!loginError)
-    return;
+  if (loginError) {
 
+    loginError.textContent =
+      message;
 
-  loginError.textContent =
-    message;
+  }
 
 }
 
@@ -1757,18 +1767,12 @@ async function logout() {
 
     if (error) {
 
-      console.error(
-        "Logout hatası:",
-        error
-      );
-
       showToast(
         "Çıkış yapılamadı: " +
         error.message
       );
 
       return;
-
     }
 
 
@@ -1798,6 +1802,7 @@ async function logout() {
       "Çıkış yapıldı."
     );
 
+
   } catch (error) {
 
     console.error(
@@ -1814,15 +1819,13 @@ async function logout() {
    TOAST
 ===================================================== */
 
-let toastTimer;
-
-
 function showToast(
   message
 ) {
 
-  if (!toast)
+  if (!toast) {
     return;
+  }
 
 
   toast.textContent =
@@ -1895,11 +1898,14 @@ function escapeHtml(
 
 
 /* =====================================================
-   AUTH DEĞİŞİKLİKLERİ
+   AUTH
 ===================================================== */
 
 supabaseClient.auth.onAuthStateChange(
-  (event, session) => {
+  (
+    event,
+    session
+  ) => {
 
     console.log(
       "AUTH EVENT:",
@@ -1908,7 +1914,8 @@ supabaseClient.auth.onAuthStateChange(
 
 
     if (
-      event === "SIGNED_OUT"
+      event ===
+      "SIGNED_OUT"
     ) {
 
       currentUser = null;
@@ -1920,13 +1927,7 @@ supabaseClient.auth.onAuthStateChange(
       answers = [];
 
 
-      if (
-        !isLoadingApplication
-      ) {
-
-        showLoginScreen();
-
-      }
+      showLoginScreen();
 
     }
 
