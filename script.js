@@ -183,42 +183,66 @@ async function init() {
 function setupPersonButtons() {
 
   const buttons =
-    document.querySelectorAll(
-      ".person-btn"
-    );
+    document.querySelectorAll(".person-btn");
 
 
   buttons.forEach(button => {
 
-    button.addEventListener(
-      "click",
-      () => {
+    button.addEventListener("click", function () {
 
-        buttons.forEach(btn =>
-          btn.classList.remove("active")
-        );
-
-
-        button.classList.add("active");
+      // Önce bütün butonların aktifliğini kaldır
+      buttons.forEach(btn => {
+        btn.classList.remove("active");
+      });
 
 
-        selectedPerson =
-          button.dataset.person;
+      // Tıklanan butonu aktif yap
+      this.classList.add("active");
 
 
-        const name =
-          selectedPerson === "gul"
-            ? "Gül"
-            : "Kağan";
+      // Seçilen kişiyi kaydet
+      selectedPerson =
+        this.dataset.person;
 
 
-        loginBtn.innerHTML =
-          `${name} olarak giriş yap <span>→</span>`;
+      const name =
+        selectedPerson === "gul"
+          ? "Gül"
+          : "Kağan";
 
-      }
-    );
+
+      // Giriş butonunun yazısını değiştir
+      loginBtn.innerHTML =
+        `${name} olarak giriş yap <span>→</span>`;
+
+
+      console.log(
+        "Seçilen kişi:",
+        selectedPerson
+      );
+
+    });
 
   });
+
+
+  /*
+    Başlangıçta Gül seçili olsun.
+    Ancak Kağan'a tıklanınca active sınıfı
+    kesinlikle Kağan butonuna geçsin.
+  */
+
+  const defaultButton =
+    document.querySelector(
+      '.person-btn[data-person="gul"]'
+    );
+
+
+  if (defaultButton) {
+
+    defaultButton.classList.add("active");
+
+  }
 
 }
 
