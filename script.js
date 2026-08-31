@@ -1,36 +1,20 @@
-/* =====================================================
-   SUPABASE
-===================================================== */
-
-const SUPABASE_URL =
-  "https://nwvkauyoncedbetjridz.supabase.co";
+const SUPABASE_URL = "https://nwvkauyoncedbetjridz.supabase.co";
 
 const SUPABASE_KEY =
   "sb_publishable_Rs6Nh2FBLVQHiBW_owiMyQ_2ax0VA-t";
 
-
 const supabaseClient =
   window.supabase.createClient(
     SUPABASE_URL,
-    SUPABASE_KEY,
-    {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: true
-      }
-    }
+    SUPABASE_KEY
   );
-
 
 
 /* =====================================================
    AYARLAR
 ===================================================== */
 
-const CURRENT_YEAR =
-  new Date().getFullYear();
-
+const CURRENT_YEAR = new Date().getFullYear();
 
 let currentUser = null;
 let currentProfile = null;
@@ -39,12 +23,9 @@ let questions = [];
 let answers = [];
 
 let currentFilter = "all";
-
-/*
-  Giriş ekranında seçilen kişi.
-*/
 let selectedPerson = "gul";
 
+let isEnteringApplication = false;
 
 
 /* =====================================================
@@ -97,7 +78,6 @@ const continueBtn =
   document.getElementById("continueBtn");
 
 
-
 /* =====================================================
    BAŞLANGIÇ
 ===================================================== */
@@ -108,30 +88,40 @@ document.addEventListener(
 );
 
 
-
 async function init() {
 
-  /*
-    Sayfa açıldığında güvenlik için
-    uygulamayı gizliyoruz.
-  */
+  /* -----------------------------------------------
+     İlk açılışta uygulamayı tamamen gizle
+  ------------------------------------------------ */
 
   loginScreen.classList.remove("hidden");
   appShell.classList.add("hidden");
 
 
-  document.getElementById(
-    "heroYear"
-  ).textContent = CURRENT_YEAR;
+  /* -----------------------------------------------
+     YIL
+  ------------------------------------------------ */
+
+  const heroYear =
+    document.getElementById("heroYear");
+
+  const yearDisplay =
+    document.getElementById("yearDisplay");
+
+  if (heroYear) {
+    heroYear.textContent = CURRENT_YEAR;
+  }
+
+  if (yearDisplay) {
+    yearDisplay.textContent = CURRENT_YEAR;
+  }
 
 
-  document.getElementById(
-    "yearDisplay"
-  ).textContent = CURRENT_YEAR;
-
+  /* -----------------------------------------------
+     BUTONLAR
+  ------------------------------------------------ */
 
   setupPersonButtons();
-
   setupFilters();
 
 
@@ -153,109 +143,55 @@ async function init() {
   );
 
 
-  document
-    .getElementById("logoutBtn")
-    .addEventListener(
+  const logoutBtn =
+    document.getElementById("logoutBtn");
+
+  if (logoutBtn) {
+
+    logoutBtn.addEventListener(
       "click",
       logout
     );
 
-
-  continueBtn.addEventListener(
-    "click",
-    continueFromWhereLeft
-  );
+  }
 
 
-  /*
-    Daha önce giriş yapılmış mı?
-  */
+  if (continueBtn) {
 
-  const {
-    data,
-    error
-  } =
-    await supabaseClient.auth.getSession();
-
-
-  if (error) {
-
-    console.error(
-      "Oturum kontrol hatası:",
-      error
+    continueBtn.addEventListener(
+      "click",
+      continueFromWhereLeft
     );
-
-    showLogin();
-
-    return;
 
   }
 
 
-  const session =
-    data?.session;
+  /* -----------------------------------------------
+     SUPABASE OTURUMUNU KONTROL ET
+  ------------------------------------------------ */
+
+  const {
+    data: {
+      session
+    }
+  } =
+    await supabaseClient.auth.getSession();
 
 
   if (session) {
 
-    console.log(
-      "Mevcut oturum bulundu."
-    );
-
     currentUser =
       session.user;
-
 
     await enterApplication();
 
   } else {
 
-    console.log(
-      "Aktif oturum bulunamadı."
-    );
-
-    showLogin();
+    showLoginScreen();
 
   }
 
 }
-
-
-
-/* =====================================================
-   LOGIN EKRANINI GÖSTER
-===================================================== */
-
-function showLogin() {
-
-  loginScreen.classList.remove(
-    "hidden"
-  );
-
-  appShell.classList.add(
-    "hidden"
-  );
-
-}
-
-
-
-/* =====================================================
-   UYGULAMAYI GÖSTER
-===================================================== */
-
-function showApplication() {
-
-  loginScreen.classList.add(
-    "hidden"
-  );
-
-  appShell.classList.remove(
-    "hidden"
-  );
-
-}
-
 
 
 /* =====================================================
@@ -274,14 +210,9 @@ function setupPersonButtons() {
 
     button.addEventListener(
       "click",
-      function(event) {
+      function () {
 
-        event.preventDefault();
-
-
-        /*
-          Aktif görünümü değiştir.
-        */
+        /* Önce hepsini pasifleştir */
 
         buttons.forEach(btn => {
 
@@ -292,35 +223,25 @@ function setupPersonButtons() {
         });
 
 
+        /* Tıklanan kişiyi aktif yap */
+
         this.classList.add(
           "active"
         );
 
 
-        /*
-          Seçilen kişiyi kaydet.
-        */
+        /* Seçilen kişiyi kaydet */
 
         selectedPerson =
           this.dataset.person;
 
 
-        const name =
-          selectedPerson === "gul"
-            ? "Gül"
-            : "Kağan";
-
-
-        loginBtn.innerHTML =
-          `${name} olarak giriş yap <span>→</span>`;
-
-
-        loginError.textContent = "";
+        updateLoginButton();
 
 
         console.log(
           "Seçilen kişi:",
-          name
+          selectedPerson
         );
 
       }
@@ -329,44 +250,41 @@ function setupPersonButtons() {
   });
 
 
-  /*
-    Başlangıçta Gül seçili.
-  */
+  /* Başlangıçta Gül seçili */
 
-  setSelectedPerson("gul");
+  const gulButton =
+    document.querySelector(
+      '.person-btn[data-person="gul"]'
+    );
+
+  if (gulButton) {
+
+    buttons.forEach(btn =>
+      btn.classList.remove("active")
+    );
+
+    gulButton.classList.add("active");
+
+  }
+
+
+  updateLoginButton();
 
 }
 
 
-
 /* =====================================================
-   KİŞİ SEÇ
+   GİRİŞ BUTONU YAZISI
 ===================================================== */
 
-function setSelectedPerson(person) {
+function updateLoginButton() {
 
-  selectedPerson =
-    person;
-
-
-  const buttons =
-    document.querySelectorAll(
-      ".person-btn"
-    );
-
-
-  buttons.forEach(button => {
-
-    button.classList.toggle(
-      "active",
-      button.dataset.person === person
-    );
-
-  });
+  if (!loginBtn)
+    return;
 
 
   const name =
-    person === "gul"
+    selectedPerson === "gul"
       ? "Gül"
       : "Kağan";
 
@@ -375,7 +293,6 @@ function setSelectedPerson(person) {
     `${name} olarak giriş yap <span>→</span>`;
 
 }
-
 
 
 /* =====================================================
@@ -389,7 +306,6 @@ async function login() {
 
   const email =
     emailInput.value.trim();
-
 
   const password =
     passwordInput.value;
@@ -411,164 +327,149 @@ async function login() {
     "Giriş yapılıyor...";
 
 
-  try {
+  const {
+    data,
+    error
+  } =
+    await supabaseClient.auth.signInWithPassword({
 
-    const {
-      data,
-      error
-    } =
-      await supabaseClient.auth.signInWithPassword({
-        email,
-        password
-      });
+      email,
+      password
 
-
-    if (error) {
-
-      console.error(
-        "Supabase giriş hatası:",
-        error
-      );
+    });
 
 
-      loginError.textContent =
-        "E-posta veya şifre hatalı. Lütfen tekrar dene.";
-
-
-      restoreLoginButton();
-
-      return;
-
-    }
-
-
-    currentUser =
-      data.user;
-
-
-    /*
-      Kullanıcının gerçek profilini getir.
-    */
-
-    const profile =
-      await getProfileForUser(
-        currentUser.id
-      );
-
-
-    if (!profile) {
-
-      /*
-        Profil bulunamadıysa uygulamaya
-        yanlış isimle girmesin.
-      */
-
-      await supabaseClient.auth.signOut();
-
-      currentUser = null;
-
-
-      loginError.textContent =
-        "Bu hesabın profil bilgisi bulunamadı. Supabase profillerini kontrol et.";
-
-
-      restoreLoginButton();
-
-      return;
-
-    }
-
-
-    /*
-      Gül seçip Kağan hesabıyla
-      giriş yapılmasını engelliyoruz.
-    */
-
-    const expectedName =
-      selectedPerson === "gul"
-        ? "Gül"
-        : "Kağan";
-
-
-    if (
-      profile.name &&
-      profile.name.toLowerCase() !==
-      expectedName.toLowerCase()
-    ) {
-
-      await supabaseClient.auth.signOut();
-
-      currentUser = null;
-
-      currentProfile = null;
-
-
-      loginError.textContent =
-        `Bu hesap ${profile.name} hesabı. Lütfen ${profile.name} seçeneğini seçerek tekrar giriş yap.`;
-
-
-      restoreLoginButton();
-
-      return;
-
-    }
-
-
-    currentProfile =
-      profile;
-
-
-    await enterApplication();
-
-  }
-
-  catch (error) {
+  if (error) {
 
     console.error(
-      "Beklenmeyen giriş hatası:",
+      "Giriş hatası:",
       error
     );
 
 
     loginError.textContent =
-      "Bir hata oluştu. Lütfen tekrar dene.";
+      "E-posta veya şifre hatalı. Lütfen tekrar dene.";
 
 
-    restoreLoginButton();
+    loginBtn.disabled = false;
+
+    updateLoginButton();
+
+    return;
+
+  }
+
+
+  /* -----------------------------------------------
+     Giriş başarılı
+  ------------------------------------------------ */
+
+  currentUser =
+    data.user;
+
+
+  await enterApplication();
+
+
+  loginBtn.disabled = false;
+
+  updateLoginButton();
+
+}
+
+
+/* =====================================================
+   UYGULAMAYA GİR
+===================================================== */
+
+async function enterApplication() {
+
+  if (!currentUser)
+    return;
+
+
+  /* Aynı anda iki kez çalışmasını engelle */
+
+  if (isEnteringApplication)
+    return;
+
+
+  isEnteringApplication = true;
+
+
+  try {
+
+    /* -----------------------------------------------
+       Uygulamayı göster
+    ------------------------------------------------ */
+
+    loginScreen.classList.add("hidden");
+    appShell.classList.remove("hidden");
+
+
+    /* -----------------------------------------------
+       Profil
+    ------------------------------------------------ */
+
+    const profileLoaded =
+      await loadProfile();
+
+
+    if (!profileLoaded) {
+
+      showLoginScreen();
+
+      return;
+
+    }
+
+
+    /* -----------------------------------------------
+       Sorular
+    ------------------------------------------------ */
+
+    await loadQuestions();
+
+
+    /* -----------------------------------------------
+       Cevaplar
+    ------------------------------------------------ */
+
+    await loadAnswers();
+
+
+    /* -----------------------------------------------
+       Ekranı oluştur
+    ------------------------------------------------ */
+
+    renderQuestions();
+
+    updateStats();
+
+    updateUserInterface();
+
+
+  } finally {
+
+    isEnteringApplication = false;
 
   }
 
 }
 
 
-
 /* =====================================================
-   LOGIN BUTONUNU ESKİ HALİNE GETİR
+   PROFİL
 ===================================================== */
 
-function restoreLoginButton() {
+async function loadProfile() {
 
-  loginBtn.disabled = false;
+  if (!currentUser) {
 
+    return false;
 
-  const name =
-    selectedPerson === "gul"
-      ? "Gül"
-      : "Kağan";
+  }
 
-
-  loginBtn.innerHTML =
-    `${name} olarak giriş yap <span>→</span>`;
-
-}
-
-
-
-/* =====================================================
-   PROFİL GETİR
-===================================================== */
-
-async function getProfileForUser(userId) {
 
   const {
     data,
@@ -579,135 +480,43 @@ async function getProfileForUser(userId) {
       .select("*")
       .eq(
         "id",
-        userId
+        currentUser.id
       )
-      .maybeSingle();
+      .single();
 
 
   if (error) {
 
     console.error(
-      "Profil alınamadı:",
+      "Profil hatası:",
       error
     );
 
-    return null;
 
-  }
-
-
-  return data;
-
-}
+    currentProfile = null;
 
 
-
-/* =====================================================
-   UYGULAMAYA GİR
-===================================================== */
-
-async function enterApplication() {
-
-  if (!currentUser) {
-
-    showLogin();
-
-    return;
-
-  }
+    loginError.textContent =
+      "Bu hesabın profil bilgisi bulunamadı.";
 
 
-  /*
-    Önce profil.
-  */
-
-  if (!currentProfile) {
-
-    currentProfile =
-      await getProfileForUser(
-        currentUser.id
-      );
-
-  }
-
-
-  if (!currentProfile) {
-
-    console.error(
-      "Kullanıcı profili bulunamadı."
+    showToast(
+      "Profil bilgisi bulunamadı."
     );
 
 
-    await supabaseClient.auth.signOut();
-
-    currentUser = null;
-
-    showLogin();
-
-    return;
+    return false;
 
   }
 
 
-  /*
-    Gerçek kullanıcı adına göre
-    giriş ekranındaki seçimi de ayarla.
-  */
-
-  if (
-    currentProfile.name &&
-    currentProfile.name
-      .toLowerCase()
-      .includes("kağan")
-  ) {
-
-    selectedPerson = "kagan";
-
-  } else {
-
-    selectedPerson = "gul";
-
-  }
+  currentProfile =
+    data;
 
 
-  /*
-    Uygulamayı göster.
-  */
-
-  showApplication();
-
-
-  /*
-    Verileri yükle.
-  */
-
-  await loadQuestions();
-
-  await loadAnswers();
-
-
-  /*
-    Ekranı çiz.
-  */
-
-  renderQuestions();
-
-  updateStats();
-
-  updateUserInterface();
-
-
-  /*
-    Sayfanın başına dön.
-  */
-
-  window.scrollTo({
-    top: 0,
-    behavior: "instant"
-  });
+  return true;
 
 }
-
 
 
 /* =====================================================
@@ -716,24 +525,29 @@ async function enterApplication() {
 
 async function loadQuestions() {
 
-  console.log(
-    "Sorular yükleniyor..."
-  );
-
-
   const {
     data,
     error
   } =
     await supabaseClient
       .from("questions")
-      .select("*");
+      .select("*")
+      .eq(
+        "active",
+        true
+      )
+      .order(
+        "sort_order",
+        {
+          ascending: true
+        }
+      );
 
 
   if (error) {
 
     console.error(
-      "SORULAR YÜKLENEMEDİ:",
+      "Soru yükleme hatası:",
       error
     );
 
@@ -741,76 +555,29 @@ async function loadQuestions() {
     questions = [];
 
 
-    questionList.innerHTML = `
-      <div class="empty">
-        <div style="font-size:40px;margin-bottom:10px;">
-          ⚠️
-        </div>
-
-        <strong>Sorular yüklenemedi.</strong>
-
-        <p style="margin-top:10px;">
-          Supabase bağlantısını veya RLS izinlerini kontrol etmeliyiz.
-        </p>
-      </div>
-    `;
-
-
     showToast(
-      "Sorular yüklenirken hata oluştu."
+      "Sorular yüklenemedi."
     );
 
 
-    return;
+    return false;
 
   }
 
 
-  /*
-    active alanı varsa sadece aktif sorular.
-    active alanı yoksa bütün sorular.
-  */
-
   questions =
-    (data || [])
-      .filter(question =>
-        question.active !== false
-      )
-      .sort(
-        (a, b) =>
-          Number(a.sort_order ?? 0) -
-          Number(b.sort_order ?? 0)
-      );
+    data || [];
 
 
   console.log(
-    "Yüklenen soru sayısı:",
+    "Yüklenen sorular:",
     questions.length
   );
 
 
-  if (!questions.length) {
-
-    questionList.innerHTML = `
-      <div class="empty">
-
-        <div style="font-size:40px;margin-bottom:10px;">
-          ♡
-        </div>
-
-        <strong>Henüz soru bulunamadı.</strong>
-
-        <p style="margin-top:10px;">
-          Supabase'deki questions tablosunu kontrol edelim.
-        </p>
-
-      </div>
-    `;
-
-  }
+  return true;
 
 }
-
 
 
 /* =====================================================
@@ -819,18 +586,8 @@ async function loadQuestions() {
 
 async function loadAnswers() {
 
-  if (!currentUser) {
-
-    answers = [];
-
-    return;
-
-  }
-
-
-  console.log(
-    "Cevaplar yükleniyor..."
-  );
+  if (!currentUser)
+    return false;
 
 
   const {
@@ -849,7 +606,7 @@ async function loadAnswers() {
   if (error) {
 
     console.error(
-      "CEVAPLAR YÜKLENEMEDİ:",
+      "Cevap yükleme hatası:",
       error
     );
 
@@ -858,11 +615,11 @@ async function loadAnswers() {
 
 
     showToast(
-      "Cevaplar yüklenirken hata oluştu."
+      "Cevaplar yüklenemedi."
     );
 
 
-    return;
+    return false;
 
   }
 
@@ -872,12 +629,14 @@ async function loadAnswers() {
 
 
   console.log(
-    "Yüklenen cevap sayısı:",
+    "Yüklenen cevaplar:",
     answers.length
   );
 
-}
 
+  return true;
+
+}
 
 
 /* =====================================================
@@ -891,35 +650,52 @@ function updateUserInterface() {
 
 
   const name =
-    currentProfile.name ||
-    (
-      selectedPerson === "gul"
-        ? "Gül"
-        : "Kağan"
+    currentProfile.name;
+
+
+  if (welcomeUser) {
+
+    welcomeUser.textContent =
+      `${name} olarak giriş yaptın`;
+
+  }
+
+
+  if (currentPersonName) {
+
+    currentPersonName.textContent =
+      name;
+
+  }
+
+
+  const heroYear =
+    document.getElementById(
+      "heroYear"
+    );
+
+  const yearDisplay =
+    document.getElementById(
+      "yearDisplay"
     );
 
 
-  welcomeUser.textContent =
-    `${name} olarak giriş yaptın`;
+  if (heroYear) {
+
+    heroYear.textContent =
+      CURRENT_YEAR;
+
+  }
 
 
-  currentPersonName.textContent =
-    name;
+  if (yearDisplay) {
 
+    yearDisplay.textContent =
+      CURRENT_YEAR;
 
-  document.getElementById(
-    "heroYear"
-  ).textContent =
-    CURRENT_YEAR;
-
-
-  document.getElementById(
-    "yearDisplay"
-  ).textContent =
-    CURRENT_YEAR;
+  }
 
 }
-
 
 
 /* =====================================================
@@ -928,18 +704,17 @@ function updateUserInterface() {
 
 function renderQuestions() {
 
-  if (!currentUser) {
-
-    questionList.innerHTML = "";
-
+  if (!questionList)
     return;
-
-  }
 
 
   let visibleQuestions =
     [...questions];
 
+
+  /* -----------------------------------------------
+     Filtre: cevaplanan
+  ------------------------------------------------ */
 
   if (
     currentFilter ===
@@ -957,6 +732,10 @@ function renderQuestions() {
   }
 
 
+  /* -----------------------------------------------
+     Filtre: cevaplanmayan
+  ------------------------------------------------ */
+
   if (
     currentFilter ===
     "unanswered"
@@ -973,16 +752,29 @@ function renderQuestions() {
   }
 
 
-  if (!visibleQuestions.length) {
+  /* -----------------------------------------------
+     Soru yoksa
+  ------------------------------------------------ */
+
+  if (
+    !visibleQuestions.length
+  ) {
 
     questionList.innerHTML = `
       <div class="empty">
 
-        <div style="font-size:40px;margin-bottom:10px;">
+        <div style="
+          font-size:40px;
+          margin-bottom:10px;
+        ">
           ♡
         </div>
 
-        Bu filtrede gösterilecek soru yok.
+        ${
+          questions.length === 0
+            ? "Henüz soru bulunmuyor."
+            : "Bu filtrede gösterilecek soru yok."
+        }
 
       </div>
     `;
@@ -991,6 +783,10 @@ function renderQuestions() {
 
   }
 
+
+  /* -----------------------------------------------
+     Kartları oluştur
+  ------------------------------------------------ */
 
   questionList.innerHTML =
     visibleQuestions
@@ -1004,8 +800,14 @@ function renderQuestions() {
       .join("");
 
 
+  /* -----------------------------------------------
+     Kaydet butonları
+  ------------------------------------------------ */
+
   document
-    .querySelectorAll(".save-btn")
+    .querySelectorAll(
+      ".save-btn"
+    )
     .forEach(button => {
 
       button.addEventListener(
@@ -1024,7 +826,6 @@ function renderQuestions() {
     });
 
 }
-
 
 
 /* =====================================================
@@ -1093,24 +894,27 @@ function createQuestionCard(
           class="saved-label"
           id="saved-${question.id}"
         >
+
           ${
             answered
               ? "✓ Cevabın kayıtlı"
               : "Henüz cevaplanmadı"
           }
+
         </span>
 
 
         <button
-          type="button"
           class="save-btn"
           data-question-id="${question.id}"
         >
+
           ${
             answered
               ? "Cevabı güncelle"
               : "Cevabı kaydet"
           }
+
         </button>
 
       </div>
@@ -1145,7 +949,6 @@ function createQuestionCard(
 }
 
 
-
 /* =====================================================
    CEVAP KAYDET
 ===================================================== */
@@ -1171,15 +974,8 @@ async function saveAnswer(
     );
 
 
-  if (!textarea) {
-
-    showToast(
-      "Cevap alanı bulunamadı."
-    );
-
+  if (!textarea)
     return;
-
-  }
 
 
   const answer =
@@ -1191,6 +987,7 @@ async function saveAnswer(
     showToast(
       "Önce cevabını yazmalısın ❤️"
     );
+
 
     textarea.focus();
 
@@ -1225,7 +1022,9 @@ async function saveAnswer(
     await supabaseClient
       .from("answers")
       .upsert(
+
         {
+
           user_id:
             currentUser.id,
 
@@ -1237,18 +1036,23 @@ async function saveAnswer(
 
           answer:
             answer
+
         },
+
         {
+
           onConflict:
             "user_id,question_id,year"
+
         }
+
       );
 
 
   if (error) {
 
     console.error(
-      "CEVAP KAYIT HATASI:",
+      "Cevap kayıt hatası:",
       error
     );
 
@@ -1282,7 +1086,6 @@ async function saveAnswer(
 }
 
 
-
 /* =====================================================
    KENDİ CEVABINI BUL
 ===================================================== */
@@ -1299,32 +1102,19 @@ function getMyAnswer(
     answers.find(
       answer =>
 
-        String(
-          answer.user_id
-        ) ===
-        String(
-          currentUser.id
-        ) &&
+        answer.user_id ===
+          currentUser.id &&
 
-        String(
-          answer.question_id
-        ) ===
-        String(
-          questionId
-        ) &&
+        answer.question_id ===
+          questionId &&
 
-        Number(
-          answer.year
-        ) ===
-        Number(
+        answer.year ===
           CURRENT_YEAR
-        )
-    ) ||
-    null
+
+    ) || null
   );
 
 }
-
 
 
 /* =====================================================
@@ -1343,32 +1133,19 @@ function getPartnerAnswer(
     answers.find(
       answer =>
 
-        String(
-          answer.user_id
-        ) !==
-        String(
-          currentUser.id
-        ) &&
+        answer.user_id !==
+          currentUser.id &&
 
-        String(
-          answer.question_id
-        ) ===
-        String(
-          questionId
-        ) &&
+        answer.question_id ===
+          questionId &&
 
-        Number(
-          answer.year
-        ) ===
-        Number(
+        answer.year ===
           CURRENT_YEAR
-        )
-    ) ||
-    null
+
+    ) || null
   );
 
 }
-
 
 
 /* =====================================================
@@ -1394,30 +1171,42 @@ function updateStats() {
     total === 0
       ? 0
       : Math.round(
-          (
-            answered /
-            total
-          ) * 100
+          (answered / total) * 100
         );
 
 
-  answeredCount.textContent =
-    answered;
+  if (answeredCount) {
+
+    answeredCount.textContent =
+      answered;
+
+  }
 
 
-  totalCount.textContent =
-    total;
+  if (totalCount) {
+
+    totalCount.textContent =
+      total;
+
+  }
 
 
-  progressText.textContent =
-    `${percentage}%`;
+  if (progressText) {
+
+    progressText.textContent =
+      `${percentage}%`;
+
+  }
 
 
-  progressFill.style.width =
-    `${percentage}%`;
+  if (progressFill) {
+
+    progressFill.style.width =
+      `${percentage}%`;
+
+  }
 
 }
-
 
 
 /* =====================================================
@@ -1427,7 +1216,9 @@ function updateStats() {
 function setupFilters() {
 
   document
-    .querySelectorAll(".filter-btn")
+    .querySelectorAll(
+      ".filter-btn"
+    )
     .forEach(button => {
 
       button.addEventListener(
@@ -1464,23 +1255,11 @@ function setupFilters() {
 }
 
 
-
 /* =====================================================
    KALDIĞIM YERDEN DEVAM ET
 ===================================================== */
 
 function continueFromWhereLeft() {
-
-  if (!currentUser) {
-
-    showToast(
-      "Önce giriş yapmalısın."
-    );
-
-    return;
-
-  }
-
 
   const firstUnanswered =
     questions.find(
@@ -1502,14 +1281,16 @@ function continueFromWhereLeft() {
     if (element) {
 
       element.scrollIntoView({
+
         behavior: "smooth",
+
         block: "center"
+
       });
 
 
       setTimeout(
-        () =>
-          element.focus(),
+        () => element.focus(),
         500
       );
 
@@ -1520,13 +1301,21 @@ function continueFromWhereLeft() {
   }
 
 
-  document
-    .getElementById(
+  const questionsSection =
+    document.getElementById(
       "questions"
-    )
-    .scrollIntoView({
+    );
+
+
+  if (questionsSection) {
+
+    questionsSection.scrollIntoView({
+
       behavior: "smooth"
+
     });
+
+  }
 
 
   showToast(
@@ -1535,6 +1324,32 @@ function continueFromWhereLeft() {
 
 }
 
+
+/* =====================================================
+   LOGIN EKRANINI GÖSTER
+===================================================== */
+
+function showLoginScreen() {
+
+  loginScreen.classList.remove(
+    "hidden"
+  );
+
+  appShell.classList.add(
+    "hidden"
+  );
+
+
+  currentUser = null;
+  currentProfile = null;
+
+  questions = [];
+  answers = [];
+
+
+  loginError.textContent = "";
+
+}
 
 
 /* =====================================================
@@ -1547,54 +1362,17 @@ async function logout() {
 
 
   currentUser = null;
-
   currentProfile = null;
 
   questions = [];
-
   answers = [];
 
-  currentFilter = "all";
 
-
-  appShell.classList.add(
-    "hidden"
-  );
-
-
-  loginScreen.classList.remove(
-    "hidden"
-  );
+  showLoginScreen();
 
 
   emailInput.value = "";
-
   passwordInput.value = "";
-
-  loginError.textContent = "";
-
-
-  setSelectedPerson(
-    "gul"
-  );
-
-
-  /*
-    Tüm filtreleri sıfırla.
-  */
-
-  document
-    .querySelectorAll(
-      ".filter-btn"
-    )
-    .forEach(button => {
-
-      button.classList.toggle(
-        "active",
-        button.dataset.filter === "all"
-      );
-
-    });
 
 
   showToast(
@@ -1602,7 +1380,6 @@ async function logout() {
   );
 
 }
-
 
 
 /* =====================================================
@@ -1615,6 +1392,10 @@ let toastTimer;
 function showToast(
   message
 ) {
+
+  if (!toast)
+    return;
+
 
   toast.textContent =
     message;
@@ -1643,7 +1424,6 @@ function showToast(
     );
 
 }
-
 
 
 /* =====================================================
@@ -1684,13 +1464,15 @@ function escapeHtml(
 }
 
 
-
 /* =====================================================
    AUTH DEĞİŞİKLİĞİ
 ===================================================== */
 
 supabaseClient.auth.onAuthStateChange(
-  (event, session) => {
+  async (
+    event,
+    session
+  ) => {
 
     console.log(
       "Auth event:",
@@ -1698,13 +1480,38 @@ supabaseClient.auth.onAuthStateChange(
     );
 
 
-    /*
-      SIGNED_OUT durumunda login ekranı.
-    */
+    /* -----------------------------------------------
+       Giriş yapıldı
+    ------------------------------------------------ */
 
     if (
       event ===
-      "SIGNED_OUT"
+        "SIGNED_IN" &&
+      session
+    ) {
+
+      currentUser =
+        session.user;
+
+
+      /*
+        Burada enterApplication çağırmıyoruz.
+        Çünkü login() zaten çağırıyor.
+        Sayfa yenilendiğinde de init() çağırıyor.
+      */
+
+      return;
+
+    }
+
+
+    /* -----------------------------------------------
+       Çıkış yapıldı
+    ------------------------------------------------ */
+
+    if (
+      event ===
+        "SIGNED_OUT"
     ) {
 
       currentUser = null;
@@ -1716,19 +1523,9 @@ supabaseClient.auth.onAuthStateChange(
       answers = [];
 
 
-      showLogin();
+      showLoginScreen();
 
     }
-
-
-    /*
-      Burada SIGNED_IN olduğunda
-      tekrar enterApplication çağırmıyoruz.
-
-      Çünkü login() ve init() zaten bunu yapıyor.
-      Böylece iki kere veri yükleme
-      ve yarış koşulu oluşmuyor.
-    */
 
   }
 );
