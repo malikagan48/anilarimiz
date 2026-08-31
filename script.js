@@ -1,219 +1,933 @@
-const questions = [
-  ["Film & Dizi","🎬","En sevdiğim film hangisi?","Örn. Interstellar"],
-  ["Film & Dizi","📺","En sevdiğim dizi hangisi?","Örn. Game of Thrones"],
-  ["Film & Dizi","🎌","En sevdiğim anime hangisi?","Örn. Attack on Titan"],
-  ["Film & Dizi","😂","En çok güldüğüm film veya dizi hangisi?",""],
-  ["Film & Dizi","😭","Beni en çok ağlatan film veya dizi hangisi?",""],
-  ["Film & Dizi","🦸","En sevdiğim film/dizi karakteri kim?",""],
-  ["Film & Dizi","👿","En sevdiğim kötü karakter kim?",""],
-  ["Film & Dizi","🎭","Kendime en çok benzeyen karakter kim?",""],
-  ["Film & Dizi","💑","Eşime en çok benzeyen karakter kim?",""],
-  ["Film & Dizi","🌎","Bir film/dizi evreninde yaşayacak olsam hangisi?",""],
-  ["Oyun","🎮","En sevdiğim oyun hangisi?","Örn. The Witcher 3"],
-  ["Oyun","🕹️","Çocukluğumun en sevdiğim oyunu hangisi?",""],
-  ["Oyun","🏆","Tüm zamanların en iyi oyunu bence hangisi?",""],
-  ["Oyun","👑","En sevdiğim oyun karakteri kim?",""],
-  ["Oyun","💑","Birlikte oynamayı en sevdiğim oyun hangisi?",""],
-  ["Yemek","🍕","En sevdiğim yemek hangisi?","Örn. Mantı"],
-  ["Yemek","🍰","En sevdiğim tatlı hangisi?",""],
-  ["Yemek","🍔","En sevdiğim fast food hangisi?",""],
-  ["Yemek","🥩","En sevdiğim et yemeği hangisi?",""],
-  ["Yemek","🍝","En sevdiğim makarna hangisi?",""],
-  ["Yemek","🍳","En sevdiğim kahvaltılık hangisi?",""],
-  ["Yemek","🍓","En sevdiğim meyve hangisi?",""],
-  ["Yemek","☕","En sevdiğim kahve hangisi?",""],
-  ["Yemek","🍫","En sevdiğim çikolata hangisi?",""],
-  ["Yemek","🤢","Asla yiyemem dediğim yemek hangisi?",""],
-  ["Yemek","👨‍🍳","Eşimin yaptığı en sevdiğim yemek hangisi?",""],
-  ["Kitap & Şiir","📖","En sevdiğim kitap hangisi?","Örn. Simyacı"],
-  ["Kitap & Şiir","🧠","Hayatımı en çok etkileyen kitap hangisi?",""],
-  ["Kitap & Şiir","📝","En sevdiğim şiir hangisi?",""],
-  ["Kitap & Şiir","❤️","En sevdiğim şiir dizesi hangisi?",""],
-  ["Kitap & Şiir","💬","En sevdiğim söz hangisi?",""],
-  ["Kitap & Şiir","✨","Hayat görüşümü en iyi anlatan söz hangisi?",""],
-  ["Müzik","🎵","En sevdiğim şarkı hangisi?",""],
-  ["Müzik","🎤","En sevdiğim sanatçı kim?",""],
-  ["Müzik","💿","En sevdiğim albüm hangisi?",""],
-  ["Müzik","🥹","Beni en çok duygulandıran şarkı hangisi?",""],
-  ["Müzik","💃","Dans etmek için seçtiğim şarkı hangisi?",""],
-  ["Müzik","❤️","Bizi en çok anlatan şarkı hangisi?",""],
-  ["Müzik","💍","İlişkimizin/düğünümüzün şarkısı hangisi?",""],
-  ["Birbirimiz","❤️","Eşimde en sevdiğim özellik nedir?",""],
-  ["Birbirimiz","😂","Eşimin en komik özelliği nedir?",""],
-  ["Birbirimiz","🥰","Eşimin yaptığı en tatlı şey nedir?",""],
-  ["Birbirimiz","😤","Eşimin beni en çok sinirlendiren huyu nedir?",""],
-  ["Birbirimiz","🫶","Eşim bana en çok ne zaman sevildiğimi hissettirdi?",""],
-  ["Birbirimiz","👀","Eşimde ilk dikkatimi çeken şey neydi?",""],
-  ["Birbirimiz","🥹","Eşimle yaşadığım en güzel an hangisi?",""],
-  ["Birbirimiz","😂","Birlikte yaşadığımız en komik an hangisi?",""],
-  ["Birbirimiz","💋","Birlikte yaşadığımız en romantik an hangisi?",""],
-  ["Birbirimiz","📸","En sevdiğim birlikte çekilmiş fotoğrafımız hangisi?",""],
-  ["Hayaller","✈️","En sevdiğim şehir hangisi?",""],
-  ["Hayaller","🌍","En sevdiğim ülke hangisi?",""],
-  ["Hayaller","🏖️","Birlikte en çok gitmek istediğim yer neresi?",""],
-  ["Hayaller","🏡","Hayalimdeki ev nasıl?",""],
-  ["Hayaller","🚗","Hayalimdeki araba hangisi?",""],
-  ["Hayaller","💰","Para sorun olmasaydı alacağım ilk şey ne olurdu?",""],
-  ["Hayaller","💼","Hayalimdeki meslek ne?",""],
-  ["Hayaller","🌟","Gerçekleştirmek istediğim en büyük hayal ne?",""],
-  ["Hayaller","🎯","Bu yıl gerçekleştirmek istediğim en önemli şey ne?",""],
-  ["Hayaller","🪄","Bir dilek hakkım olsa ne dilerdim?",""],
-  ["Hayaller","🔮","Gelecekte görmek istediğim bir gün hangisi?",""],
-  ["Hayaller","🧳","Eşimle yaşamak istediğim en büyük macera ne?",""],
-  ["Tahmin","🎯","Eşimce benim en sevdiğim film hangisi?","Tahminini yaz"],
-  ["Tahmin","🍕","Eşimce benim en sevdiğim yemek hangisi?","Tahminini yaz"],
-  ["Tahmin","🎵","Eşimce benim en sevdiğim şarkı hangisi?","Tahminini yaz"],
-  ["Tahmin","📖","Eşimce benim en sevdiğim kitap hangisi?","Tahminini yaz"],
-  ["Tahmin","📺","Eşimce benim en sevdiğim dizi hangisi?","Tahminini yaz"],
-  ["Tahmin","🎮","Eşimce benim en sevdiğim oyun hangisi?","Tahminini yaz"],
-  ["Tahmin","✈️","Eşimce en çok gitmek istediğim yer neresi?","Tahminini yaz"],
-  ["Tahmin","💎","Eşimce hayalimdeki araba hangisi?","Tahminini yaz"],
-  ["Tahmin","❤️","Eşimce hayatta en çok önem verdiğim şey ne?","Tahminini yaz"],
-  ["Tahmin","😊","Eşimce beni en çok ne mutlu eder?","Tahminini yaz"],
-  ["Tahmin","💭","Eşimce benim en büyük hayalim ne?","Tahminini yaz"],
-  ["Tahmin","🥹","Eşimce birlikte yaşadığımız en güzel an hangisi?","Tahminini yaz"],
-  ["Gelecek","🕰️","1 yıl sonra en sevdiğim film hâlâ aynı mı?","Bugünkü cevabını da hatırla"],
-  ["Gelecek","🎵","1 yıl sonra en sevdiğim şarkı değişmiş olacak mı?",""],
-  ["Gelecek","🍽️","1 yıl sonra en sevdiğim yemek değişmiş olacak mı?",""],
-  ["Gelecek","✈️","1 yıl içinde gitmek istediğim yere gitmiş olacak mıyım?",""],
-  ["Gelecek","🌟","1 yıl içinde hangi hayalimi gerçekleştirmiş olmayı istiyorum?",""],
-  ["Gelecek","❤️","1 yıl sonraki eşime bugün söylemek istediğim bir cümle ne?",""],
-  ["Gelecek","💌","1 yıl sonraki kendime bugün söylemek istediğim bir cümle ne?",""],
-  ["Gelecek","💑","Gelecek yıl birlikte yaşamak istediğimiz en güzel şey ne?",""],
-  ["Gelecek","🔮","Gelecek yıl için ortak dileğimiz ne?",""],
-  ["Gelecek","💍","Bir yıl sonra hâlâ birbirimizi ilk günkü kadar iyi tanıyor olacak mıyız?",""]
-];
+const SUPABASE_URL = "https://nwvkauyoncedbetjridz.supabase.co";
 
-const KEY = "bizim-enlerimiz-v1";
-const state = JSON.parse(localStorage.getItem(KEY) || '{"answers":{},"lastQuestion":0}');
-let activeCategory = "Tümü";
+const SUPABASE_KEY =
+  "sb_publishable_Rs6Nh2FBLVQHiBW_owiMyQ_2ax0VA-t";
 
-const categories = ["Tümü", ...new Set(questions.map(q => q[0]))];
-const filters = document.getElementById("filters");
-const list = document.getElementById("questionList");
+const supabaseClient =
+  window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
 
-function escapeHTML(value) {
-  return String(value ?? "").replace(/[&<>"']/g, char => ({
-    "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#039;"
-  }[char]));
-}
 
-function renderFilters() {
-  filters.innerHTML = categories.map(cat =>
-    `<button class="filter ${cat === activeCategory ? "active" : ""}" data-category="${escapeHTML(cat)}">${escapeHTML(cat)}</button>`
-  ).join("");
-  filters.querySelectorAll(".filter").forEach(btn => {
-    btn.addEventListener("click", () => {
-      activeCategory = btn.dataset.category;
-      renderFilters();
-      renderQuestions();
-    });
+/* =====================================================
+   AYARLAR
+===================================================== */
+
+const CURRENT_YEAR = new Date().getFullYear();
+
+let currentUser = null;
+let currentProfile = null;
+let questions = [];
+let answers = [];
+let currentFilter = "all";
+
+let selectedPerson = "gul";
+
+
+/* =====================================================
+   ELEMENTLER
+===================================================== */
+
+const loginScreen =
+  document.getElementById("loginScreen");
+
+const appShell =
+  document.getElementById("appShell");
+
+const loginBtn =
+  document.getElementById("loginBtn");
+
+const loginError =
+  document.getElementById("loginError");
+
+const emailInput =
+  document.getElementById("email");
+
+const passwordInput =
+  document.getElementById("password");
+
+const questionList =
+  document.getElementById("questionList");
+
+const answeredCount =
+  document.getElementById("answeredCount");
+
+const totalCount =
+  document.getElementById("totalCount");
+
+const progressText =
+  document.getElementById("progressText");
+
+const progressFill =
+  document.getElementById("progressFill");
+
+const toast =
+  document.getElementById("toast");
+
+const welcomeUser =
+  document.getElementById("welcomeUser");
+
+const currentPersonName =
+  document.getElementById("currentPersonName");
+
+const continueBtn =
+  document.getElementById("continueBtn");
+
+
+/* =====================================================
+   BAŞLANGIÇ
+===================================================== */
+
+document.addEventListener("DOMContentLoaded", init);
+
+
+async function init() {
+
+  document.getElementById("heroYear").textContent =
+    CURRENT_YEAR;
+
+  document.getElementById("yearDisplay").textContent =
+    CURRENT_YEAR;
+
+  setupPersonButtons();
+  setupFilters();
+
+  loginBtn.addEventListener("click", login);
+
+  passwordInput.addEventListener("keydown", event => {
+
+    if (event.key === "Enter") {
+      login();
+    }
+
   });
+
+  document
+    .getElementById("logoutBtn")
+    .addEventListener("click", logout);
+
+  continueBtn.addEventListener(
+    "click",
+    continueFromWhereLeft
+  );
+
+
+  const {
+    data: {
+      session
+    }
+  } = await supabaseClient.auth.getSession();
+
+
+  if (session) {
+
+    currentUser = session.user;
+
+    await enterApplication();
+
+  }
+
 }
 
-function answerKey(index, person) {
-  return `${index}_${person}`;
+
+/* =====================================================
+   GÜL / KAĞAN SEÇİMİ
+===================================================== */
+
+function setupPersonButtons() {
+
+  const buttons =
+    document.querySelectorAll(".person-btn");
+
+  buttons.forEach(button => {
+
+    button.addEventListener("click", () => {
+
+      buttons.forEach(btn =>
+        btn.classList.remove("active")
+      );
+
+      button.classList.add("active");
+
+      selectedPerson =
+        button.dataset.person;
+
+      const name =
+        selectedPerson === "gul"
+          ? "Gül"
+          : "Kağan";
+
+      loginBtn.innerHTML =
+        `${name} olarak giriş yap <span>→</span>`;
+
+    });
+
+  });
+
 }
+
+
+/* =====================================================
+   LOGIN
+===================================================== */
+
+async function login() {
+
+  loginError.textContent = "";
+
+  const email =
+    emailInput.value.trim();
+
+  const password =
+    passwordInput.value;
+
+
+  if (!email || !password) {
+
+    loginError.textContent =
+      "E-posta ve şifre alanlarını doldurmalısın.";
+
+    return;
+
+  }
+
+
+  loginBtn.disabled = true;
+
+  loginBtn.innerHTML =
+    "Giriş yapılıyor...";
+
+
+  const {
+    data,
+    error
+  } = await supabaseClient.auth.signInWithPassword({
+
+    email,
+    password
+
+  });
+
+
+  if (error) {
+
+    loginError.textContent =
+      "E-posta veya şifre hatalı. Lütfen tekrar dene.";
+
+    loginBtn.disabled = false;
+
+    loginBtn.innerHTML =
+      `${selectedPerson === "gul" ? "Gül" : "Kağan"} olarak giriş yap <span>→</span>`;
+
+    return;
+
+  }
+
+
+  currentUser = data.user;
+
+  await enterApplication();
+
+}
+
+
+/* =====================================================
+   UYGULAMAYA GİR
+===================================================== */
+
+async function enterApplication() {
+
+  loginScreen.classList.add("hidden");
+
+  appShell.classList.remove("hidden");
+
+
+  await loadProfile();
+
+  await loadQuestions();
+
+  await loadAnswers();
+
+  renderQuestions();
+
+  updateStats();
+
+  updateUserInterface();
+
+}
+
+
+/* =====================================================
+   PROFİL
+===================================================== */
+
+async function loadProfile() {
+
+  const {
+    data,
+    error
+  } = await supabaseClient
+    .from("profiles")
+    .select("*")
+    .eq("id", currentUser.id)
+    .single();
+
+
+  if (error) {
+
+    console.error(error);
+
+    showToast(
+      "Profil bilgisi alınamadı."
+    );
+
+    return;
+
+  }
+
+
+  currentProfile = data;
+
+}
+
+
+/* =====================================================
+   SORULARI GETİR
+===================================================== */
+
+async function loadQuestions() {
+
+  const {
+    data,
+    error
+  } = await supabaseClient
+    .from("questions")
+    .select("*")
+    .eq("active", true)
+    .order("sort_order", {
+      ascending: true
+    });
+
+
+  if (error) {
+
+    console.error(error);
+
+    showToast(
+      "Sorular yüklenemedi."
+    );
+
+    return;
+
+  }
+
+
+  questions = data || [];
+
+}
+
+
+/* =====================================================
+   CEVAPLARI GETİR
+===================================================== */
+
+async function loadAnswers() {
+
+  const {
+    data,
+    error
+  } = await supabaseClient
+    .from("answers")
+    .select("*")
+    .eq("year", CURRENT_YEAR);
+
+
+  if (error) {
+
+    console.error(error);
+
+    showToast(
+      "Cevaplar yüklenemedi."
+    );
+
+    return;
+
+  }
+
+
+  answers = data || [];
+
+}
+
+
+/* =====================================================
+   KULLANICI BİLGİLERİ
+===================================================== */
+
+function updateUserInterface() {
+
+  if (!currentProfile)
+    return;
+
+
+  const name =
+    currentProfile.name;
+
+
+  welcomeUser.textContent =
+    `${name} olarak giriş yaptın`;
+
+
+  currentPersonName.textContent =
+    name;
+
+
+  const heroYear =
+    document.getElementById("heroYear");
+
+  const yearDisplay =
+    document.getElementById("yearDisplay");
+
+
+  heroYear.textContent =
+    CURRENT_YEAR;
+
+  yearDisplay.textContent =
+    CURRENT_YEAR;
+
+}
+
+
+/* =====================================================
+   SORULARI ÇİZ
+===================================================== */
 
 function renderQuestions() {
-  const visible = questions.map((q, i) => ({q, i}))
-    .filter(({q}) => activeCategory === "Tümü" || q[0] === activeCategory);
 
-  list.innerHTML = visible.map(({q, i}) => `
-    <article class="question-card" id="question-${i}">
-      <div class="question-meta">
-        <span class="question-number">${String(i + 1).padStart(2, "0")}</span>
-        <span class="question-category">${q[1]} ${escapeHTML(q[0])}</span>
+  let visibleQuestions =
+    [...questions];
+
+
+  if (currentFilter === "answered") {
+
+    visibleQuestions =
+      visibleQuestions.filter(question =>
+        getMyAnswer(question.id)
+      );
+
+  }
+
+
+  if (currentFilter === "unanswered") {
+
+    visibleQuestions =
+      visibleQuestions.filter(question =>
+        !getMyAnswer(question.id)
+      );
+
+  }
+
+
+  if (!visibleQuestions.length) {
+
+    questionList.innerHTML = `
+      <div class="empty">
+        <div style="font-size:40px;margin-bottom:10px;">♡</div>
+        Bu filtrede gösterilecek soru yok.
       </div>
-      <h3 class="question-title">${escapeHTML(q[2])}</h3>
-      <div class="answers">
-        ${personField(i, "gul", "Gul", q[3] || "Cevabını yaz...")}
-        ${personField(i, "kagan", "Kagan", q[3] || "Cevabını yaz...")}
-      </div>
-      <div class="save-row"><button class="save-btn" data-save="${i}">Cevabı kaydet</button></div>
-    </article>
-  `).join("");
+    `;
 
-  list.querySelectorAll(".answer-input").forEach(input => {
-    input.addEventListener("input", () => {
-      state.answers[input.dataset.key] = input.value;
-      saveState(false);
-      updateProgress();
-      const dot = input.parentElement.querySelector(".saved-dot");
-      if (dot) dot.style.opacity = input.value.trim() ? "1" : "0";
+    return;
+
+  }
+
+
+  questionList.innerHTML =
+    visibleQuestions
+      .map((question, index) =>
+        createQuestionCard(
+          question,
+          index
+        )
+      )
+      .join("");
+
+
+  document
+    .querySelectorAll(".save-btn")
+    .forEach(button => {
+
+      button.addEventListener(
+        "click",
+        () => saveAnswer(
+          Number(button.dataset.questionId)
+        )
+      );
+
     });
-  });
 
-  list.querySelectorAll(".save-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const i = btn.dataset.save;
-      state.lastQuestion = Number(i);
-      saveState(true);
-      showToast("Cevabınız kaydedildi ♥");
-      updateProgress();
-    });
-  });
-
-  updateSavedDots();
 }
 
-function personField(i, person, label, placeholder) {
-  const key = answerKey(i, person);
-  const value = state.answers[key] || "";
+
+/* =====================================================
+   SORU KARTI
+===================================================== */
+
+function createQuestionCard(
+  question,
+  index
+) {
+
+  const myAnswer =
+    getMyAnswer(question.id);
+
+
+  const partnerAnswer =
+    getPartnerAnswer(question.id);
+
+
+  const answered =
+    !!myAnswer;
+
+
+  const partnerName =
+    currentProfile?.name === "Gül"
+      ? "Kağan"
+      : "Gül";
+
+
   return `
-    <label>
-      <span class="person-label"><span>${label}</span><span class="saved-dot">● Kaydedildi</span></span>
-      <textarea class="answer-input" data-key="${key}" placeholder="${escapeHTML(placeholder)}">${escapeHTML(value)}</textarea>
-    </label>
+
+    <article class="question-card">
+
+      <div class="question-number">
+        ${String(index + 1).padStart(2, "0")}
+      </div>
+
+      <h3 class="question-title">
+        ${escapeHtml(question.question)}
+      </h3>
+
+      <textarea
+        class="answer-area"
+        id="answer-${question.id}"
+        placeholder="Cevabını buraya yaz..."
+      >${myAnswer
+        ? escapeHtml(myAnswer.answer)
+        : ""
+      }</textarea>
+
+      <div class="answer-actions">
+
+        <span
+          class="saved-label"
+          id="saved-${question.id}"
+        >
+          ${answered
+            ? "✓ Cevabın kayıtlı"
+            : "Henüz cevaplanmadı"}
+        </span>
+
+        <button
+          class="save-btn"
+          data-question-id="${question.id}"
+        >
+          ${answered
+            ? "Cevabı güncelle"
+            : "Cevabı kaydet"}
+        </button>
+
+      </div>
+
+
+      ${
+        partnerAnswer
+          ? `
+            <div class="partner-answer">
+
+              <div class="partner-title">
+                ♥ ${partnerName}'ın cevabı
+              </div>
+
+              <p>
+                ${escapeHtml(
+                  partnerAnswer.answer
+                )}
+              </p>
+
+            </div>
+          `
+          : ""
+      }
+
+    </article>
+
   `;
+
 }
 
-function updateSavedDots() {
-  list.querySelectorAll(".answer-input").forEach(input => {
-    const dot = input.parentElement.querySelector(".saved-dot");
-    if (dot) dot.style.opacity = input.value.trim() ? "1" : "0";
-  });
+
+/* =====================================================
+   CEVAP KAYDET
+===================================================== */
+
+async function saveAnswer(questionId) {
+
+  const textarea =
+    document.getElementById(
+      `answer-${questionId}`
+    );
+
+
+  const answer =
+    textarea.value.trim();
+
+
+  if (!answer) {
+
+    showToast(
+      "Önce cevabını yazmalısın ❤️"
+    );
+
+    textarea.focus();
+
+    return;
+
+  }
+
+
+  const button =
+    document.querySelector(
+      `.save-btn[data-question-id="${questionId}"]`
+    );
+
+
+  const originalText =
+    button.textContent;
+
+
+  button.disabled = true;
+
+  button.textContent =
+    "Kaydediliyor...";
+
+
+  const {
+    error
+  } = await supabaseClient
+    .from("answers")
+    .upsert({
+
+      user_id:
+        currentUser.id,
+
+      question_id:
+        questionId,
+
+      year:
+        CURRENT_YEAR,
+
+      answer:
+        answer
+
+    }, {
+
+      onConflict:
+        "user_id,question_id,year"
+
+    });
+
+
+  if (error) {
+
+    console.error(error);
+
+    showToast(
+      "Cevap kaydedilemedi."
+    );
+
+    button.disabled = false;
+
+    button.textContent =
+      originalText;
+
+    return;
+
+  }
+
+
+  showToast(
+    "Cevabın kaydedildi ❤️"
+  );
+
+
+  await loadAnswers();
+
+  renderQuestions();
+
+  updateStats();
+
 }
 
-function updateProgress() {
-  let answered = 0;
-  questions.forEach((_, i) => {
-    const m = (state.answers[answerKey(i, "gul")] || "").trim();
-    const g = (state.answers[answerKey(i, "kagan")] || "").trim();
-    if (m || g) answered++;
-  });
-  const pct = Math.round((answered / questions.length) * 100);
-  document.getElementById("answeredCount").textContent = answered;
-  document.getElementById("totalCount").textContent = questions.length;
-  document.getElementById("progressText").textContent = `${pct}%`;
-  document.getElementById("progressFill").style.width = `${pct}%`;
+
+/* =====================================================
+   KENDİ CEVABINI BUL
+===================================================== */
+
+function getMyAnswer(questionId) {
+
+  if (!currentUser)
+    return null;
+
+
+  return answers.find(answer =>
+
+    answer.user_id === currentUser.id &&
+    answer.question_id === questionId &&
+    answer.year === CURRENT_YEAR
+
+  ) || null;
+
 }
 
-function saveState(show = false) {
-  localStorage.setItem(KEY, JSON.stringify(state));
-  if (show) showToast("Kaydedildi ♥");
+
+/* =====================================================
+   PARTNER CEVABI
+===================================================== */
+
+function getPartnerAnswer(questionId) {
+
+  if (!currentUser)
+    return null;
+
+
+  return answers.find(answer =>
+
+    answer.user_id !== currentUser.id &&
+    answer.question_id === questionId &&
+    answer.year === CURRENT_YEAR
+
+  ) || null;
+
 }
+
+
+/* =====================================================
+   İSTATİSTİKLER
+===================================================== */
+
+function updateStats() {
+
+  const answered =
+    questions.filter(question =>
+      getMyAnswer(question.id)
+    ).length;
+
+
+  const total =
+    questions.length;
+
+
+  const percentage =
+    total === 0
+      ? 0
+      : Math.round(
+          (answered / total) * 100
+        );
+
+
+  answeredCount.textContent =
+    answered;
+
+  totalCount.textContent =
+    total;
+
+  progressText.textContent =
+    `${percentage}%`;
+
+  progressFill.style.width =
+    `${percentage}%`;
+
+}
+
+
+/* =====================================================
+   FİLTRELER
+===================================================== */
+
+function setupFilters() {
+
+  document
+    .querySelectorAll(".filter-btn")
+    .forEach(button => {
+
+      button.addEventListener(
+        "click",
+        () => {
+
+          document
+            .querySelectorAll(".filter-btn")
+            .forEach(btn =>
+              btn.classList.remove("active")
+            );
+
+          button.classList.add("active");
+
+          currentFilter =
+            button.dataset.filter;
+
+          renderQuestions();
+
+        }
+      );
+
+    });
+
+}
+
+
+/* =====================================================
+   KALDIĞIM YERDEN DEVAM ET
+===================================================== */
+
+function continueFromWhereLeft() {
+
+  const firstUnanswered =
+    questions.find(question =>
+      !getMyAnswer(question.id)
+    );
+
+
+  if (firstUnanswered) {
+
+    const element =
+      document.getElementById(
+        `answer-${firstUnanswered.id}`
+      );
+
+
+    if (element) {
+
+      element.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+      });
+
+      setTimeout(() => {
+        element.focus();
+      }, 500);
+
+    }
+
+    return;
+
+  }
+
+
+  document
+    .getElementById("questions")
+    .scrollIntoView({
+      behavior: "smooth"
+    });
+
+
+  showToast(
+    "Tüm soruları cevapladın! ❤️"
+  );
+
+}
+
+
+/* =====================================================
+   LOGOUT
+===================================================== */
+
+async function logout() {
+
+  await supabaseClient.auth.signOut();
+
+  currentUser = null;
+  currentProfile = null;
+  questions = [];
+  answers = [];
+
+  appShell.classList.add("hidden");
+
+  loginScreen.classList.remove("hidden");
+
+  passwordInput.value = "";
+
+  showToast(
+    "Çıkış yapıldı."
+  );
+
+}
+
+
+/* =====================================================
+   TOAST
+===================================================== */
+
+let toastTimer;
+
 
 function showToast(message) {
-  const toast = document.getElementById("toast");
-  toast.textContent = message;
+
+  toast.textContent =
+    message;
+
   toast.classList.add("show");
-  clearTimeout(showToast.timer);
-  showToast.timer = setTimeout(() => toast.classList.remove("show"), 1800);
+
+  clearTimeout(toastTimer);
+
+  toastTimer =
+    setTimeout(() => {
+
+      toast.classList.remove("show");
+
+    }, 2600);
+
 }
 
-document.getElementById("continueBtn").addEventListener("click", () => {
-  const target = document.getElementById(`question-${state.lastQuestion}`) || document.getElementById("questions");
-  target.scrollIntoView({behavior:"smooth", block:"center"});
-});
 
-document.getElementById("resetBtn").addEventListener("click", () => {
-  const ok = confirm("Bu cihazdaki tüm cevaplar silinsin mi? Bu işlem geri alınamaz.");
-  if (!ok) return;
-  localStorage.removeItem(KEY);
-  location.reload();
-});
+/* =====================================================
+   HTML GÜVENLİĞİ
+===================================================== */
 
-renderFilters();
-renderQuestions();
-updateProgress();
+function escapeHtml(value) {
+
+  return String(value)
+
+    .replaceAll("&", "&amp;")
+
+    .replaceAll("<", "&lt;")
+
+    .replaceAll(">", "&gt;")
+
+    .replaceAll('"', "&quot;")
+
+    .replaceAll("'", "&#039;");
+
+}
+
+
+/* =====================================================
+   AUTH DEĞİŞİKLİĞİ
+===================================================== */
+
+supabaseClient.auth.onAuthStateChange(
+  async (event, session) => {
+
+    if (
+      event === "SIGNED_IN" &&
+      session
+    ) {
+
+      currentUser =
+        session.user;
+
+    }
+
+  }
+);
