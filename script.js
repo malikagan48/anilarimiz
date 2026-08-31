@@ -1,4 +1,5 @@
-const SUPABASE_URL = "https://nwvkauyoncedbetjridz.supabase.co";
+const SUPABASE_URL =
+  "https://nwvkauyoncedbetjridz.supabase.co";
 
 const SUPABASE_KEY =
   "sb_publishable_Rs6Nh2FBLVQHiBW_owiMyQ_2ax0VA-t";
@@ -25,7 +26,7 @@ let answers = [];
 let currentFilter = "all";
 let selectedPerson = "gul";
 
-let isEnteringApplication = false;
+let isLoadingApplication = false;
 
 
 /* =====================================================
@@ -90,31 +91,23 @@ document.addEventListener(
 
 async function init() {
 
+  console.log("=================================");
+  console.log("UYGULAMA BAŞLATILIYOR");
+  console.log("=================================");
+
+
   /* -----------------------------------------------
-     İlk açılışta uygulamayı tamamen gizle
+     İlk açılış
   ------------------------------------------------ */
 
-  loginScreen.classList.remove("hidden");
-  appShell.classList.add("hidden");
+  showLoginScreen();
 
 
   /* -----------------------------------------------
      YIL
   ------------------------------------------------ */
 
-  const heroYear =
-    document.getElementById("heroYear");
-
-  const yearDisplay =
-    document.getElementById("yearDisplay");
-
-  if (heroYear) {
-    heroYear.textContent = CURRENT_YEAR;
-  }
-
-  if (yearDisplay) {
-    yearDisplay.textContent = CURRENT_YEAR;
-  }
+  setYear();
 
 
   /* -----------------------------------------------
@@ -125,26 +118,37 @@ async function init() {
   setupFilters();
 
 
-  loginBtn.addEventListener(
-    "click",
-    login
-  );
+  if (loginBtn) {
+
+    loginBtn.addEventListener(
+      "click",
+      login
+    );
+
+  }
 
 
-  passwordInput.addEventListener(
-    "keydown",
-    event => {
+  if (passwordInput) {
 
-      if (event.key === "Enter") {
-        login();
+    passwordInput.addEventListener(
+      "keydown",
+      event => {
+
+        if (event.key === "Enter") {
+          login();
+        }
+
       }
+    );
 
-    }
-  );
+  }
 
 
   const logoutBtn =
-    document.getElementById("logoutBtn");
+    document.getElementById(
+      "logoutBtn"
+    );
+
 
   if (logoutBtn) {
 
@@ -167,507 +171,87 @@ async function init() {
 
 
   /* -----------------------------------------------
-     SUPABASE OTURUMUNU KONTROL ET
+     MEVCUT SESSION
   ------------------------------------------------ */
-
-  const {
-    data: {
-      session
-    }
-  } =
-    await supabaseClient.auth.getSession();
-
-
-  if (session) {
-
-    currentUser =
-      session.user;
-
-    await enterApplication();
-
-  } else {
-
-    showLoginScreen();
-
-  }
-
-}
-
-
-/* =====================================================
-   GÜL / KAĞAN SEÇİMİ
-===================================================== */
-
-function setupPersonButtons() {
-
-  const buttons =
-    document.querySelectorAll(
-      ".person-btn"
-    );
-
-
-  buttons.forEach(button => {
-
-    button.addEventListener(
-      "click",
-      function () {
-
-        /* Önce hepsini pasifleştir */
-
-        buttons.forEach(btn => {
-
-          btn.classList.remove(
-            "active"
-          );
-
-        });
-
-
-        /* Tıklanan kişiyi aktif yap */
-
-        this.classList.add(
-          "active"
-        );
-
-
-        /* Seçilen kişiyi kaydet */
-
-        selectedPerson =
-          this.dataset.person;
-
-
-        updateLoginButton();
-
-
-        console.log(
-          "Seçilen kişi:",
-          selectedPerson
-        );
-
-      }
-    );
-
-  });
-
-
-  /* Başlangıçta Gül seçili */
-
-  const gulButton =
-    document.querySelector(
-      '.person-btn[data-person="gul"]'
-    );
-
-  if (gulButton) {
-
-    buttons.forEach(btn =>
-      btn.classList.remove("active")
-    );
-
-    gulButton.classList.add("active");
-
-  }
-
-
-  updateLoginButton();
-
-}
-
-
-/* =====================================================
-   GİRİŞ BUTONU YAZISI
-===================================================== */
-
-function updateLoginButton() {
-
-  if (!loginBtn)
-    return;
-
-
-  const name =
-    selectedPerson === "gul"
-      ? "Gül"
-      : "Kağan";
-
-
-  loginBtn.innerHTML =
-    `${name} olarak giriş yap <span>→</span>`;
-
-}
-
-
-/* =====================================================
-   LOGIN
-===================================================== */
-
-async function login() {
-
-  loginError.textContent = "";
-
-
-  const email =
-    emailInput.value.trim();
-
-  const password =
-    passwordInput.value;
-
-
-  if (!email || !password) {
-
-    loginError.textContent =
-      "E-posta ve şifre alanlarını doldurmalısın.";
-
-    return;
-
-  }
-
-
-  loginBtn.disabled = true;
-
-  loginBtn.innerHTML =
-    "Giriş yapılıyor...";
-
-
-  const {
-    data,
-    error
-  } =
-    await supabaseClient.auth.signInWithPassword({
-
-      email,
-      password
-
-    });
-
-
-  if (error) {
-
-    console.error(
-      "Giriş hatası:",
-      error
-    );
-
-
-    loginError.textContent =
-      "E-posta veya şifre hatalı. Lütfen tekrar dene.";
-
-
-    loginBtn.disabled = false;
-
-    updateLoginButton();
-
-    return;
-
-  }
-
-
-  /* -----------------------------------------------
-     Giriş başarılı
-  ------------------------------------------------ */
-
-  currentUser =
-    data.user;
-
-
-  await enterApplication();
-
-
-  loginBtn.disabled = false;
-
-  updateLoginButton();
-
-}
-
-
-/* =====================================================
-   UYGULAMAYA GİR
-===================================================== */
-
-async function enterApplication() {
-
-  if (!currentUser)
-    return;
-
-
-  /* Aynı anda iki kez çalışmasını engelle */
-
-  if (isEnteringApplication)
-    return;
-
-
-  isEnteringApplication = true;
-
 
   try {
 
-    /* -----------------------------------------------
-       Uygulamayı göster
-    ------------------------------------------------ */
-
-    loginScreen.classList.add("hidden");
-    appShell.classList.remove("hidden");
-
-
-    /* -----------------------------------------------
-       Profil
-    ------------------------------------------------ */
-
-    const profileLoaded =
-      await loadProfile();
+    const {
+      data,
+      error
+    } =
+      await supabaseClient.auth.getSession();
 
 
-    if (!profileLoaded) {
+    if (error) {
 
-      showLoginScreen();
+      console.error(
+        "Session kontrol hatası:",
+        error
+      );
+
+      showLoginError(
+        "Oturum kontrol edilemedi: " +
+        error.message
+      );
 
       return;
 
     }
 
 
-    /* -----------------------------------------------
-       Sorular
-    ------------------------------------------------ */
-
-    await loadQuestions();
+    const session =
+      data?.session;
 
 
-    /* -----------------------------------------------
-       Cevaplar
-    ------------------------------------------------ */
+    if (session) {
 
-    await loadAnswers();
-
-
-    /* -----------------------------------------------
-       Ekranı oluştur
-    ------------------------------------------------ */
-
-    renderQuestions();
-
-    updateStats();
-
-    updateUserInterface();
-
-
-  } finally {
-
-    isEnteringApplication = false;
-
-  }
-
-}
-
-
-/* =====================================================
-   PROFİL
-===================================================== */
-
-async function loadProfile() {
-
-  if (!currentUser) {
-
-    return false;
-
-  }
-
-
-  const {
-    data,
-    error
-  } =
-    await supabaseClient
-      .from("profiles")
-      .select("*")
-      .eq(
-        "id",
-        currentUser.id
-      )
-      .single();
-
-
-  if (error) {
-
-    console.error(
-      "Profil hatası:",
-      error
-    );
-
-
-    currentProfile = null;
-
-
-    loginError.textContent =
-      "Bu hesabın profil bilgisi bulunamadı.";
-
-
-    showToast(
-      "Profil bilgisi bulunamadı."
-    );
-
-
-    return false;
-
-  }
-
-
-  currentProfile =
-    data;
-
-
-  return true;
-
-}
-
-
-/* =====================================================
-   SORULARI GETİR
-===================================================== */
-
-async function loadQuestions() {
-
-  const {
-    data,
-    error
-  } =
-    await supabaseClient
-      .from("questions")
-      .select("*")
-      .eq(
-        "active",
-        true
-      )
-      .order(
-        "sort_order",
-        {
-          ascending: true
-        }
+      console.log(
+        "Mevcut session bulundu:",
+        session.user.email
       );
 
 
-  if (error) {
-
-    console.error(
-      "Soru yükleme hatası:",
-      error
-    );
+      currentUser =
+        session.user;
 
 
-    questions = [];
+      await loadApplication();
 
+    } else {
 
-    showToast(
-      "Sorular yüklenemedi."
-    );
-
-
-    return false;
-
-  }
-
-
-  questions =
-    data || [];
-
-
-  console.log(
-    "Yüklenen sorular:",
-    questions.length
-  );
-
-
-  return true;
-
-}
-
-
-/* =====================================================
-   CEVAPLARI GETİR
-===================================================== */
-
-async function loadAnswers() {
-
-  if (!currentUser)
-    return false;
-
-
-  const {
-    data,
-    error
-  } =
-    await supabaseClient
-      .from("answers")
-      .select("*")
-      .eq(
-        "year",
-        CURRENT_YEAR
+      console.log(
+        "Aktif session bulunamadı."
       );
 
 
-  if (error) {
+      showLoginScreen();
+
+    }
+
+  } catch (error) {
 
     console.error(
-      "Cevap yükleme hatası:",
+      "Başlangıç hatası:",
       error
     );
 
 
-    answers = [];
-
-
-    showToast(
-      "Cevaplar yüklenemedi."
+    showLoginError(
+      "Başlangıç hatası: " +
+      error.message
     );
 
-
-    return false;
-
   }
-
-
-  answers =
-    data || [];
-
-
-  console.log(
-    "Yüklenen cevaplar:",
-    answers.length
-  );
-
-
-  return true;
 
 }
 
 
 /* =====================================================
-   KULLANICI BİLGİLERİ
+   YIL
 ===================================================== */
 
-function updateUserInterface() {
-
-  if (!currentProfile)
-    return;
-
-
-  const name =
-    currentProfile.name;
-
-
-  if (welcomeUser) {
-
-    welcomeUser.textContent =
-      `${name} olarak giriş yaptın`;
-
-  }
-
-
-  if (currentPersonName) {
-
-    currentPersonName.textContent =
-      name;
-
-  }
-
+function setYear() {
 
   const heroYear =
     document.getElementById(
@@ -699,6 +283,864 @@ function updateUserInterface() {
 
 
 /* =====================================================
+   GÜL / KAĞAN SEÇİMİ
+===================================================== */
+
+function setupPersonButtons() {
+
+  const buttons =
+    document.querySelectorAll(
+      ".person-btn"
+    );
+
+
+  buttons.forEach(button => {
+
+    button.addEventListener(
+      "click",
+      function () {
+
+        buttons.forEach(btn => {
+
+          btn.classList.remove(
+            "active"
+          );
+
+        });
+
+
+        this.classList.add(
+          "active"
+        );
+
+
+        selectedPerson =
+          this.dataset.person;
+
+
+        updateLoginButton();
+
+
+        console.log(
+          "Seçilen kişi:",
+          selectedPerson
+        );
+
+      }
+    );
+
+  });
+
+
+  const gulButton =
+    document.querySelector(
+      '.person-btn[data-person="gul"]'
+    );
+
+
+  if (gulButton) {
+
+    buttons.forEach(btn =>
+      btn.classList.remove("active")
+    );
+
+    gulButton.classList.add("active");
+
+  }
+
+
+  updateLoginButton();
+
+}
+
+
+/* =====================================================
+   GİRİŞ BUTONU
+===================================================== */
+
+function updateLoginButton() {
+
+  if (!loginBtn)
+    return;
+
+
+  const name =
+    selectedPerson === "gul"
+      ? "Gül"
+      : "Kağan";
+
+
+  loginBtn.innerHTML =
+    `${name} olarak giriş yap <span>→</span>`;
+
+}
+
+
+/* =====================================================
+   LOGIN
+===================================================== */
+
+async function login() {
+
+  if (!loginBtn)
+    return;
+
+
+  clearLoginError();
+
+
+  const email =
+    emailInput
+      ? emailInput.value.trim()
+      : "";
+
+
+  const password =
+    passwordInput
+      ? passwordInput.value
+      : "";
+
+
+  if (!email || !password) {
+
+    showLoginError(
+      "E-posta ve şifre alanlarını doldurmalısın."
+    );
+
+    return;
+
+  }
+
+
+  loginBtn.disabled = true;
+
+  loginBtn.innerHTML =
+    "Giriş yapılıyor...";
+
+
+  console.log(
+    "Giriş deneniyor:",
+    email
+  );
+
+
+  try {
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient.auth.signInWithPassword({
+
+        email:
+          email,
+
+        password:
+          password
+
+      });
+
+
+    if (error) {
+
+      console.error(
+        "SUPABASE LOGIN HATASI:",
+        error
+      );
+
+
+      showLoginError(
+        "Giriş başarısız: " +
+        error.message
+      );
+
+
+      loginBtn.disabled = false;
+
+      updateLoginButton();
+
+      return;
+
+    }
+
+
+    if (!data?.user) {
+
+      showLoginError(
+        "Giriş başarılı görünüyor fakat kullanıcı bilgisi alınamadı."
+      );
+
+
+      loginBtn.disabled = false;
+
+      updateLoginButton();
+
+      return;
+
+    }
+
+
+    /* -----------------------------------------------
+       LOGIN BAŞARILI
+    ------------------------------------------------ */
+
+    currentUser =
+      data.user;
+
+
+    console.log(
+      "================================="
+    );
+
+    console.log(
+      "GİRİŞ BAŞARILI"
+    );
+
+    console.log(
+      "User ID:",
+      currentUser.id
+    );
+
+    console.log(
+      "Email:",
+      currentUser.email
+    );
+
+    console.log(
+      "================================="
+    );
+
+
+    await loadApplication();
+
+
+  } catch (error) {
+
+    console.error(
+      "LOGIN EXCEPTION:",
+      error
+    );
+
+
+    showLoginError(
+      "Beklenmeyen giriş hatası: " +
+      error.message
+    );
+
+  } finally {
+
+    loginBtn.disabled = false;
+
+    updateLoginButton();
+
+  }
+
+}
+
+
+/* =====================================================
+   UYGULAMAYI YÜKLE
+===================================================== */
+
+async function loadApplication() {
+
+  if (!currentUser) {
+
+    console.warn(
+      "loadApplication çağrıldı fakat currentUser yok."
+    );
+
+    return;
+
+  }
+
+
+  if (isLoadingApplication) {
+
+    console.log(
+      "Uygulama zaten yükleniyor, tekrar çalıştırılmadı."
+    );
+
+    return;
+
+  }
+
+
+  isLoadingApplication = true;
+
+
+  console.log(
+    "Uygulama yükleniyor..."
+  );
+
+
+  try {
+
+    /* -----------------------------------------------
+       Önce uygulamayı göster
+    ------------------------------------------------ */
+
+    loginScreen.classList.add(
+      "hidden"
+    );
+
+    appShell.classList.remove(
+      "hidden"
+    );
+
+
+    /* -----------------------------------------------
+       PROFİL
+    ------------------------------------------------ */
+
+    console.log(
+      "1) Profil yükleniyor..."
+    );
+
+
+    const profileResult =
+      await loadProfile();
+
+
+    if (!profileResult.success) {
+
+      console.error(
+        "PROFİL YÜKLENEMEDİ."
+      );
+
+
+      /*
+       ÖNEMLİ:
+       Artık login ekranına ATMAYACAĞIZ.
+      */
+
+      showApplicationError(
+        "Profil yüklenemedi",
+        profileResult.message
+      );
+
+
+      return;
+
+    }
+
+
+    console.log(
+      "Profil başarıyla yüklendi:",
+      currentProfile
+    );
+
+
+    /* -----------------------------------------------
+       SORULAR
+    ------------------------------------------------ */
+
+    console.log(
+      "2) Sorular yükleniyor..."
+    );
+
+
+    const questionResult =
+      await loadQuestions();
+
+
+    if (!questionResult.success) {
+
+      console.error(
+        "SORULAR YÜKLENEMEDİ."
+      );
+
+
+      showApplicationError(
+        "Sorular yüklenemedi",
+        questionResult.message
+      );
+
+
+      return;
+
+    }
+
+
+    console.log(
+      "Sorular:",
+      questions.length
+    );
+
+
+    /* -----------------------------------------------
+       CEVAPLAR
+    ------------------------------------------------ */
+
+    console.log(
+      "3) Cevaplar yükleniyor..."
+    );
+
+
+    const answerResult =
+      await loadAnswers();
+
+
+    if (!answerResult.success) {
+
+      console.error(
+        "CEVAPLAR YÜKLENEMEDİ."
+      );
+
+
+      /*
+       Cevaplar yüklenemese bile
+       sorular gösterilsin.
+      */
+
+      answers = [];
+
+    }
+
+
+    console.log(
+      "Cevaplar:",
+      answers.length
+    );
+
+
+    /* -----------------------------------------------
+       EKRANI ÇİZ
+    ------------------------------------------------ */
+
+    renderQuestions();
+
+    updateStats();
+
+    updateUserInterface();
+
+
+    console.log(
+      "================================="
+    );
+
+    console.log(
+      "UYGULAMA BAŞARIYLA YÜKLENDİ"
+    );
+
+    console.log(
+      "================================="
+    );
+
+
+  } catch (error) {
+
+    console.error(
+      "UYGULAMA YÜKLEME EXCEPTION:",
+      error
+    );
+
+
+    showApplicationError(
+      "Uygulama yüklenemedi",
+      error.message
+    );
+
+
+  } finally {
+
+    isLoadingApplication = false;
+
+  }
+
+}
+
+
+/* =====================================================
+   PROFİL
+===================================================== */
+
+async function loadProfile() {
+
+  if (!currentUser) {
+
+    return {
+
+      success: false,
+
+      message:
+        "Aktif kullanıcı bulunamadı."
+
+    };
+
+  }
+
+
+  console.log(
+    "Profil için User ID:",
+    currentUser.id
+  );
+
+
+  try {
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from("profiles")
+        .select("*")
+        .eq(
+          "id",
+          currentUser.id
+        )
+        .maybeSingle();
+
+
+    if (error) {
+
+      console.error(
+        "================================="
+      );
+
+      console.error(
+        "PROFİL SUPABASE HATASI"
+      );
+
+      console.error(
+        error
+      );
+
+      console.error(
+        "================================="
+      );
+
+
+      return {
+
+        success: false,
+
+        message:
+          `Supabase hatası: ${error.message}
+          
+Kod: ${error.code || "yok"}
+
+Detay: ${
+  error.details || "yok"
+}
+
+Hint: ${
+  error.hint || "yok"
+}`
+
+      };
+
+    }
+
+
+    if (!data) {
+
+      console.error(
+        "profiles tablosunda bu ID bulunamadı:",
+        currentUser.id
+      );
+
+
+      return {
+
+        success: false,
+
+        message:
+          `profiles tablosunda bu kullanıcı için kayıt bulunamadı.
+
+Giriş yapan User ID:
+${currentUser.id}
+
+Bu ID'nin profiles.id ile aynı olması gerekiyor.`
+
+      };
+
+    }
+
+
+    currentProfile =
+      data;
+
+
+    return {
+
+      success: true,
+
+      data: data
+
+    };
+
+  } catch (error) {
+
+    console.error(
+      "Profil exception:",
+      error
+    );
+
+
+    return {
+
+      success: false,
+
+      message:
+        error.message
+
+    };
+
+  }
+
+}
+
+
+/* =====================================================
+   SORULAR
+===================================================== */
+
+async function loadQuestions() {
+
+  try {
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from("questions")
+        .select("*")
+        .eq(
+          "active",
+          true
+        )
+        .order(
+          "sort_order",
+          {
+            ascending: true
+          }
+        );
+
+
+    if (error) {
+
+      console.error(
+        "================================="
+      );
+
+      console.error(
+        "SORULAR SUPABASE HATASI"
+      );
+
+      console.error(
+        error
+      );
+
+      console.error(
+        "================================="
+      );
+
+
+      return {
+
+        success: false,
+
+        message:
+          `Supabase hatası: ${error.message}
+
+Kod: ${error.code || "yok"}
+
+Detay: ${
+  error.details || "yok"
+}
+
+Hint: ${
+  error.hint || "yok"
+}`
+
+      };
+
+    }
+
+
+    questions =
+      data || [];
+
+
+    console.log(
+      "Yüklenen soru sayısı:",
+      questions.length
+    );
+
+
+    if (questions.length > 0) {
+
+      console.log(
+        "İlk soru:",
+        questions[0]
+      );
+
+    }
+
+
+    return {
+
+      success: true,
+
+      data: questions
+
+    };
+
+  } catch (error) {
+
+    console.error(
+      "Sorular exception:",
+      error
+    );
+
+
+    return {
+
+      success: false,
+
+      message:
+        error.message
+
+    };
+
+  }
+
+}
+
+
+/* =====================================================
+   CEVAPLAR
+===================================================== */
+
+async function loadAnswers() {
+
+  if (!currentUser) {
+
+    return {
+
+      success: false,
+
+      message:
+        "Kullanıcı bulunamadı."
+
+    };
+
+  }
+
+
+  try {
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from("answers")
+        .select("*")
+        .eq(
+          "year",
+          CURRENT_YEAR
+        );
+
+
+    if (error) {
+
+      console.error(
+        "CEVAPLAR SUPABASE HATASI:",
+        error
+      );
+
+
+      return {
+
+        success: false,
+
+        message:
+          `Supabase hatası: ${error.message}`
+
+      };
+
+    }
+
+
+    answers =
+      data || [];
+
+
+    return {
+
+      success: true,
+
+      data: answers
+
+    };
+
+  } catch (error) {
+
+    console.error(
+      "Cevap exception:",
+      error
+    );
+
+
+    return {
+
+      success: false,
+
+      message:
+        error.message
+
+    };
+
+  }
+
+}
+
+
+/* =====================================================
+   KULLANICI ARAYÜZÜ
+===================================================== */
+
+function updateUserInterface() {
+
+  if (!currentProfile)
+    return;
+
+
+  const name =
+    currentProfile.name ||
+    (
+      currentProfile.email ||
+      currentUser?.email ||
+      "Kullanıcı"
+    );
+
+
+  if (welcomeUser) {
+
+    welcomeUser.textContent =
+      `${name} olarak giriş yaptın`;
+
+  }
+
+
+  if (currentPersonName) {
+
+    currentPersonName.textContent =
+      name;
+
+  }
+
+
+  setYear();
+
+}
+
+
+/* =====================================================
    SORULARI ÇİZ
 ===================================================== */
 
@@ -711,10 +1153,6 @@ function renderQuestions() {
   let visibleQuestions =
     [...questions];
 
-
-  /* -----------------------------------------------
-     Filtre: cevaplanan
-  ------------------------------------------------ */
 
   if (
     currentFilter ===
@@ -732,10 +1170,6 @@ function renderQuestions() {
   }
 
 
-  /* -----------------------------------------------
-     Filtre: cevaplanmayan
-  ------------------------------------------------ */
-
   if (
     currentFilter ===
     "unanswered"
@@ -752,15 +1186,12 @@ function renderQuestions() {
   }
 
 
-  /* -----------------------------------------------
-     Soru yoksa
-  ------------------------------------------------ */
-
   if (
     !visibleQuestions.length
   ) {
 
     questionList.innerHTML = `
+
       <div class="empty">
 
         <div style="
@@ -772,21 +1203,33 @@ function renderQuestions() {
 
         ${
           questions.length === 0
-            ? "Henüz soru bulunmuyor."
-            : "Bu filtrede gösterilecek soru yok."
+            ? `
+              <strong>
+                Henüz soru bulunamadı.
+              </strong>
+
+              <p style="
+                margin-top:10px;
+                font-size:12px;
+              ">
+                Supabase Console → Table Editor →
+                questions tablosunda active alanlarını
+                kontrol et.
+              </p>
+            `
+            : `
+              Bu filtrede gösterilecek soru yok.
+            `
         }
 
       </div>
+
     `;
 
     return;
 
   }
 
-
-  /* -----------------------------------------------
-     Kartları oluştur
-  ------------------------------------------------ */
 
   questionList.innerHTML =
     visibleQuestions
@@ -799,10 +1242,6 @@ function renderQuestions() {
       )
       .join("");
 
-
-  /* -----------------------------------------------
-     Kaydet butonları
-  ------------------------------------------------ */
 
   document
     .querySelectorAll(
@@ -894,13 +1333,11 @@ function createQuestionCard(
           class="saved-label"
           id="saved-${question.id}"
         >
-
           ${
             answered
               ? "✓ Cevabın kayıtlı"
               : "Henüz cevaplanmadı"
           }
-
         </span>
 
 
@@ -908,13 +1345,11 @@ function createQuestionCard(
           class="save-btn"
           data-question-id="${question.id}"
         >
-
           ${
             answered
               ? "Cevabı güncelle"
               : "Cevabı kaydet"
           }
-
         </button>
 
       </div>
@@ -927,7 +1362,7 @@ function createQuestionCard(
             <div class="partner-answer">
 
               <div class="partner-title">
-                ♥ ${partnerName}'ın cevabı
+                ♥ ${escapeHtml(partnerName)}'ın cevabı
               </div>
 
               <p>
@@ -1016,49 +1451,88 @@ async function saveAnswer(
     "Kaydediliyor...";
 
 
-  const {
-    error
-  } =
-    await supabaseClient
-      .from("answers")
-      .upsert(
+  try {
 
-        {
+    const {
+      error
+    } =
+      await supabaseClient
+        .from("answers")
+        .upsert(
 
-          user_id:
-            currentUser.id,
+          {
 
-          question_id:
-            questionId,
+            user_id:
+              currentUser.id,
 
-          year:
-            CURRENT_YEAR,
+            question_id:
+              questionId,
 
-          answer:
-            answer
+            year:
+              CURRENT_YEAR,
 
-        },
+            answer:
+              answer
 
-        {
+          },
 
-          onConflict:
-            "user_id,question_id,year"
+          {
 
-        }
+            onConflict:
+              "user_id,question_id,year"
 
+          }
+
+        );
+
+
+    if (error) {
+
+      console.error(
+        "CEVAP KAYIT HATASI:",
+        error
       );
 
 
-  if (error) {
+      showToast(
+        "Cevap kaydedilemedi: " +
+        error.message
+      );
+
+
+      button.disabled = false;
+
+      button.textContent =
+        originalText;
+
+      return;
+
+    }
+
+
+    showToast(
+      "Cevabın kaydedildi ❤️"
+    );
+
+
+    await loadAnswers();
+
+    renderQuestions();
+
+    updateStats();
+
+
+  } catch (error) {
 
     console.error(
-      "Cevap kayıt hatası:",
+      "Cevap kaydetme exception:",
       error
     );
 
 
     showToast(
-      "Cevap kaydedilemedi."
+      "Cevap kaydedilemedi: " +
+      error.message
     );
 
 
@@ -1067,27 +1541,13 @@ async function saveAnswer(
     button.textContent =
       originalText;
 
-    return;
-
   }
-
-
-  showToast(
-    "Cevabın kaydedildi ❤️"
-  );
-
-
-  await loadAnswers();
-
-  renderQuestions();
-
-  updateStats();
 
 }
 
 
 /* =====================================================
-   KENDİ CEVABINI BUL
+   KENDİ CEVABIN
 ===================================================== */
 
 function getMyAnswer(
@@ -1108,8 +1568,8 @@ function getMyAnswer(
         answer.question_id ===
           questionId &&
 
-        answer.year ===
-          CURRENT_YEAR
+        Number(answer.year) ===
+          Number(CURRENT_YEAR)
 
     ) || null
   );
@@ -1139,8 +1599,8 @@ function getPartnerAnswer(
         answer.question_id ===
           questionId &&
 
-        answer.year ===
-          CURRENT_YEAR
+        Number(answer.year) ===
+          Number(CURRENT_YEAR)
 
     ) || null
   );
@@ -1256,7 +1716,7 @@ function setupFilters() {
 
 
 /* =====================================================
-   KALDIĞIM YERDEN DEVAM ET
+   KALDIĞIM YERDEN DEVAM
 ===================================================== */
 
 function continueFromWhereLeft() {
@@ -1296,6 +1756,7 @@ function continueFromWhereLeft() {
 
     }
 
+
     return;
 
   }
@@ -1326,28 +1787,156 @@ function continueFromWhereLeft() {
 
 
 /* =====================================================
-   LOGIN EKRANINI GÖSTER
+   LOGIN EKRANI
 ===================================================== */
 
 function showLoginScreen() {
 
-  loginScreen.classList.remove(
-    "hidden"
-  );
+  if (loginScreen) {
 
-  appShell.classList.add(
-    "hidden"
-  );
+    loginScreen.classList.remove(
+      "hidden"
+    );
+
+  }
+
+
+  if (appShell) {
+
+    appShell.classList.add(
+      "hidden"
+    );
+
+  }
 
 
   currentUser = null;
+
   currentProfile = null;
 
   questions = [];
+
   answers = [];
 
+  isLoadingApplication = false;
 
-  loginError.textContent = "";
+
+  clearLoginError();
+
+}
+
+
+/* =====================================================
+   UYGULAMA HATA EKRANI
+===================================================== */
+
+function showApplicationError(
+  title,
+  message
+) {
+
+  /*
+   Uygulamadan ATMIYORUZ.
+   Kullanıcı login olarak kalıyor.
+  */
+
+
+  if (appShell) {
+
+    appShell.classList.remove(
+      "hidden"
+    );
+
+  }
+
+
+  if (!questionList)
+    return;
+
+
+  questionList.innerHTML = `
+
+    <div class="empty"
+         style="
+           border:1px solid #e9dfdb;
+           border-radius:20px;
+           background:white;
+           padding:35px 25px;
+         ">
+
+      <div style="
+        font-size:42px;
+        margin-bottom:15px;
+      ">
+        ⚠️
+      </div>
+
+
+      <h3 style="
+        margin:0 0 12px;
+        color:#843f4c;
+      ">
+        ${escapeHtml(title)}
+      </h3>
+
+
+      <p style="
+        white-space:pre-line;
+        text-align:left;
+        max-width:700px;
+        margin:0 auto;
+        line-height:1.7;
+        font-size:13px;
+      ">
+        ${escapeHtml(message)}
+      </p>
+
+
+      <p style="
+        margin-top:20px;
+        font-size:12px;
+        color:#817774;
+      ">
+        F12 → Console bölümünde de
+        ayrıntılı hata görebilirsin.
+      </p>
+
+    </div>
+
+  `;
+
+
+  updateStats();
+
+}
+
+
+/* =====================================================
+   LOGIN HATASI
+===================================================== */
+
+function showLoginError(
+  message
+) {
+
+  if (!loginError)
+    return;
+
+
+  loginError.textContent =
+    message;
+
+}
+
+
+function clearLoginError() {
+
+  if (loginError) {
+
+    loginError.textContent =
+      "";
+
+  }
 
 }
 
@@ -1358,26 +1947,75 @@ function showLoginScreen() {
 
 async function logout() {
 
-  await supabaseClient.auth.signOut();
-
-
-  currentUser = null;
-  currentProfile = null;
-
-  questions = [];
-  answers = [];
-
-
-  showLoginScreen();
-
-
-  emailInput.value = "";
-  passwordInput.value = "";
-
-
-  showToast(
-    "Çıkış yapıldı."
+  console.log(
+    "Çıkış yapılıyor..."
   );
+
+
+  try {
+
+    const {
+      error
+    } =
+      await supabaseClient.auth.signOut();
+
+
+    if (error) {
+
+      console.error(
+        "Logout hatası:",
+        error
+      );
+
+      showToast(
+        "Çıkış yapılamadı: " +
+        error.message
+      );
+
+      return;
+
+    }
+
+
+    currentUser = null;
+
+    currentProfile = null;
+
+    questions = [];
+
+    answers = [];
+
+
+    showLoginScreen();
+
+
+    if (emailInput) {
+
+      emailInput.value = "";
+
+    }
+
+
+    if (passwordInput) {
+
+      passwordInput.value = "";
+
+    }
+
+
+    showToast(
+      "Çıkış yapıldı."
+    );
+
+
+  } catch (error) {
+
+    console.error(
+      "Logout exception:",
+      error
+    );
+
+  }
 
 }
 
@@ -1420,7 +2058,7 @@ function showToast(
         );
 
       },
-      2600
+      3000
     );
 
 }
@@ -1434,7 +2072,7 @@ function escapeHtml(
   value
 ) {
 
-  return String(value)
+  return String(value ?? "")
 
     .replaceAll(
       "&",
@@ -1465,49 +2103,17 @@ function escapeHtml(
 
 
 /* =====================================================
-   AUTH DEĞİŞİKLİĞİ
+   AUTH DEĞİŞİKLİKLERİ
 ===================================================== */
 
 supabaseClient.auth.onAuthStateChange(
-  async (
-    event,
-    session
-  ) => {
+  (event, session) => {
 
     console.log(
-      "Auth event:",
+      "AUTH EVENT:",
       event
     );
 
-
-    /* -----------------------------------------------
-       Giriş yapıldı
-    ------------------------------------------------ */
-
-    if (
-      event ===
-        "SIGNED_IN" &&
-      session
-    ) {
-
-      currentUser =
-        session.user;
-
-
-      /*
-        Burada enterApplication çağırmıyoruz.
-        Çünkü login() zaten çağırıyor.
-        Sayfa yenilendiğinde de init() çağırıyor.
-      */
-
-      return;
-
-    }
-
-
-    /* -----------------------------------------------
-       Çıkış yapıldı
-    ------------------------------------------------ */
 
     if (
       event ===
@@ -1523,9 +2129,26 @@ supabaseClient.auth.onAuthStateChange(
       answers = [];
 
 
-      showLoginScreen();
+      if (
+        !isLoadingApplication
+      ) {
+
+        showLoginScreen();
+
+      }
 
     }
+
+
+    /*
+      SIGNED_IN burada özellikle
+      loadApplication() çağırmıyor.
+
+      Çünkü login() zaten bunu yapıyor.
+
+      Böylece aynı uygulamanın iki kere
+      yüklenmesini engelliyoruz.
+    */
 
   }
 );
