@@ -1,5 +1,9 @@
-```javascript
-const SUPABASE_URL = "https://nwvkauyoncedbetjridz.supabase.co";
+/* =====================================================
+   SUPABASE
+===================================================== */
+
+const SUPABASE_URL =
+  "https://nwvkauyoncedbetjridz.supabase.co";
 
 const SUPABASE_KEY =
   "sb_publishable_Rs6Nh2FBLVQHiBW_owiMyQ_2ax0VA-t";
@@ -15,14 +19,20 @@ const supabaseClient =
    AYARLAR
 ===================================================== */
 
-const CURRENT_YEAR = new Date().getFullYear();
+const CURRENT_YEAR =
+  new Date().getFullYear();
 
 let currentUser = null;
 let currentProfile = null;
+
 let questions = [];
 let answers = [];
+
 let currentFilter = "all";
 
+/*
+  Varsayılan kişi Gül.
+*/
 let selectedPerson = "gul";
 
 
@@ -75,6 +85,9 @@ const currentPersonName =
 const continueBtn =
   document.getElementById("continueBtn");
 
+const logoutBtn =
+  document.getElementById("logoutBtn");
+
 
 /* =====================================================
    BAŞLANGIÇ
@@ -89,23 +102,33 @@ document.addEventListener(
 async function init() {
 
   /*
-    ÖNEMLİ:
-    Sayfa açılır açılmaz uygulamayı gizliyoruz.
-    Böylece giriş yapılmadan sorular görünemez.
+    Başlangıçta güvenli olarak
+    sadece login ekranını göster.
   */
 
-  loginScreen.classList.remove("hidden");
-  appShell.classList.add("hidden");
+  loginScreen.classList.remove(
+    "hidden"
+  );
+
+  appShell.classList.add(
+    "hidden"
+  );
 
 
-  document.getElementById("heroYear").textContent =
+  document.getElementById(
+    "heroYear"
+  ).textContent =
     CURRENT_YEAR;
 
-  document.getElementById("yearDisplay").textContent =
+
+  document.getElementById(
+    "yearDisplay"
+  ).textContent =
     CURRENT_YEAR;
 
 
   setupPersonButtons();
+
   setupFilters();
 
 
@@ -119,20 +142,22 @@ async function init() {
     "keydown",
     event => {
 
-      if (event.key === "Enter") {
+      if (
+        event.key === "Enter"
+      ) {
+
         login();
+
       }
 
     }
   );
 
 
-  document
-    .getElementById("logoutBtn")
-    .addEventListener(
-      "click",
-      logout
-    );
+  logoutBtn.addEventListener(
+    "click",
+    logout
+  );
 
 
   continueBtn.addEventListener(
@@ -142,15 +167,15 @@ async function init() {
 
 
   /*
-    Supabase daha önce giriş yapılmış
-    bir oturum bulursa direkt uygulamaya gir.
+    Supabase mevcut oturumu kontrol eder.
   */
 
   const {
     data: {
       session
     }
-  } = await supabaseClient.auth.getSession();
+  } =
+    await supabaseClient.auth.getSession();
 
 
   if (session) {
@@ -159,17 +184,6 @@ async function init() {
       session.user;
 
     await enterApplication();
-
-  } else {
-
-    /*
-      Oturum yoksa giriş ekranında kal.
-    */
-
-    currentUser = null;
-
-    loginScreen.classList.remove("hidden");
-    appShell.classList.add("hidden");
 
   }
 
@@ -183,66 +197,142 @@ async function init() {
 function setupPersonButtons() {
 
   const buttons =
-    document.querySelectorAll(".person-btn");
-
-
-  buttons.forEach(button => {
-
-    button.addEventListener("click", function () {
-
-      // Önce bütün butonların aktifliğini kaldır
-      buttons.forEach(btn => {
-        btn.classList.remove("active");
-      });
-
-
-      // Tıklanan butonu aktif yap
-      this.classList.add("active");
-
-
-      // Seçilen kişiyi kaydet
-      selectedPerson =
-        this.dataset.person;
-
-
-      const name =
-        selectedPerson === "gul"
-          ? "Gül"
-          : "Kağan";
-
-
-      // Giriş butonunun yazısını değiştir
-      loginBtn.innerHTML =
-        `${name} olarak giriş yap <span>→</span>`;
-
-
-      console.log(
-        "Seçilen kişi:",
-        selectedPerson
-      );
-
-    });
-
-  });
-
-
-  /*
-    Başlangıçta Gül seçili olsun.
-    Ancak Kağan'a tıklanınca active sınıfı
-    kesinlikle Kağan butonuna geçsin.
-  */
-
-  const defaultButton =
-    document.querySelector(
-      '.person-btn[data-person="gul"]'
+    document.querySelectorAll(
+      ".person-btn"
     );
 
 
-  if (defaultButton) {
-
-    defaultButton.classList.add("active");
-
+  if (!buttons.length) {
+    return;
   }
+
+
+  /*
+    Her iki butona da tıklama olayını
+    doğrudan bağlıyoruz.
+  */
+
+  buttons.forEach(
+    button => {
+
+      button.addEventListener(
+        "click",
+        function (event) {
+
+          event.preventDefault();
+          event.stopPropagation();
+
+
+          /*
+            Tüm butonlardan active kaldır.
+          */
+
+          buttons.forEach(
+            btn => {
+
+              btn.classList.remove(
+                "active"
+              );
+
+            }
+          );
+
+
+          /*
+            Tıklanan butonu aktif yap.
+          */
+
+          this.classList.add(
+            "active"
+          );
+
+
+          /*
+            Seçilen kişiyi kaydet.
+          */
+
+          selectedPerson =
+            this.dataset.person;
+
+
+          updateLoginButton();
+
+
+          console.log(
+            "Seçilen kişi:",
+            selectedPerson
+          );
+
+        }
+      );
+
+    }
+  );
+
+
+  /*
+    Başlangıçta Gül seçili.
+  */
+
+  selectPerson(
+    "gul"
+  );
+
+}
+
+
+/* =====================================================
+   KİŞİ SEÇ
+===================================================== */
+
+function selectPerson(person) {
+
+  const buttons =
+    document.querySelectorAll(
+      ".person-btn"
+    );
+
+
+  selectedPerson =
+    person;
+
+
+  buttons.forEach(
+    button => {
+
+      const isSelected =
+        button.dataset.person ===
+        person;
+
+
+      button.classList.toggle(
+        "active",
+        isSelected
+      );
+
+    }
+  );
+
+
+  updateLoginButton();
+
+}
+
+
+/* =====================================================
+   GİRİŞ BUTONU YAZISI
+===================================================== */
+
+function updateLoginButton() {
+
+  const name =
+    selectedPerson === "gul"
+      ? "Gül"
+      : "Kağan";
+
+
+  loginBtn.innerHTML =
+    `${name} olarak giriş yap <span>→</span>`;
 
 }
 
@@ -253,7 +343,8 @@ function setupPersonButtons() {
 
 async function login() {
 
-  loginError.textContent = "";
+  loginError.textContent =
+    "";
 
 
   const email =
@@ -274,7 +365,9 @@ async function login() {
   }
 
 
-  loginBtn.disabled = true;
+  loginBtn.disabled =
+    true;
+
 
   loginBtn.innerHTML =
     "Giriş yapılıyor...";
@@ -284,12 +377,13 @@ async function login() {
     data,
     error
   } =
-    await supabaseClient.auth.signInWithPassword({
+    await supabaseClient.auth
+      .signInWithPassword({
 
-      email,
-      password
+        email,
+        password
 
-    });
+      });
 
 
   if (error) {
@@ -304,26 +398,17 @@ async function login() {
       "E-posta veya şifre hatalı. Lütfen tekrar dene.";
 
 
-    loginBtn.disabled = false;
+    loginBtn.disabled =
+      false;
 
 
-    loginBtn.innerHTML =
-      `${selectedPerson === "gul"
-        ? "Gül"
-        : "Kağan"
-      } olarak giriş yap <span>→</span>`;
+    updateLoginButton();
 
 
     return;
 
   }
 
-
-  /*
-    Supabase oturumu tarayıcıda saklayacak.
-    Böylece sonraki ziyaretlerde tekrar
-    şifre girmek gerekmeyecek.
-  */
 
   currentUser =
     data.user;
@@ -341,11 +426,17 @@ async function login() {
 async function enterApplication() {
 
   /*
-    Önce kullanıcıyı uygulamaya alıyoruz.
+    Giriş ekranını gizle.
   */
 
-  loginScreen.classList.add("hidden");
-  appShell.classList.remove("hidden");
+  loginScreen.classList.add(
+    "hidden"
+  );
+
+
+  appShell.classList.remove(
+    "hidden"
+  );
 
 
   await loadProfile();
@@ -353,6 +444,14 @@ async function enterApplication() {
   await loadQuestions();
 
   await loadAnswers();
+
+
+  /*
+    Kullanıcının gerçek profil adına
+    göre Gül / Kağan seçimini güncelle.
+  */
+
+  syncPersonWithProfile();
 
 
   renderQuestions();
@@ -370,8 +469,9 @@ async function enterApplication() {
 
 async function loadProfile() {
 
-  if (!currentUser)
+  if (!currentUser) {
     return;
+  }
 
 
   const {
@@ -413,7 +513,37 @@ async function loadProfile() {
 
 
 /* =====================================================
-   SORULARI GETİR
+   PROFİLE GÖRE KİŞİ SEÇİMİ
+===================================================== */
+
+function syncPersonWithProfile() {
+
+  if (!currentProfile) {
+    return;
+  }
+
+
+  if (
+    currentProfile.name === "Gül"
+  ) {
+
+    selectPerson(
+      "gul"
+    );
+
+  } else {
+
+    selectPerson(
+      "kagan"
+    );
+
+  }
+
+}
+
+
+/* =====================================================
+   SORULAR
 ===================================================== */
 
 async function loadQuestions() {
@@ -462,13 +592,14 @@ async function loadQuestions() {
 
 
 /* =====================================================
-   CEVAPLARI GETİR
+   CEVAPLAR
 ===================================================== */
 
 async function loadAnswers() {
 
-  if (!currentUser)
+  if (!currentUser) {
     return;
+  }
 
 
   const {
@@ -509,13 +640,14 @@ async function loadAnswers() {
 
 
 /* =====================================================
-   KULLANICI BİLGİLERİ
+   KULLANICI ARAYÜZÜ
 ===================================================== */
 
 function updateUserInterface() {
 
-  if (!currentProfile)
+  if (!currentProfile) {
     return;
+  }
 
 
   const name =
@@ -595,6 +727,7 @@ function renderQuestions() {
         <div style="font-size:40px;margin-bottom:10px;">
           ♡
         </div>
+
         Bu filtrede gösterilecek soru yok.
       </div>
     `;
@@ -618,19 +751,24 @@ function renderQuestions() {
 
   document
     .querySelectorAll(".save-btn")
-    .forEach(button => {
+    .forEach(
+      button => {
 
-      button.addEventListener(
-        "click",
-        () =>
-          saveAnswer(
-            Number(
-              button.dataset.questionId
-            )
-          )
-      );
+        button.addEventListener(
+          "click",
+          () => {
 
-    });
+            saveAnswer(
+              Number(
+                button.dataset.questionId
+              )
+            );
+
+          }
+        );
+
+      }
+    );
 
 }
 
@@ -674,11 +812,13 @@ function createQuestionCard(
         ${String(index + 1).padStart(2, "0")}
       </div>
 
+
       <h3 class="question-title">
         ${escapeHtml(
           question.question
         )}
       </h3>
+
 
       <textarea
         class="answer-area"
@@ -691,6 +831,7 @@ function createQuestionCard(
             )
           : ""
       }</textarea>
+
 
       <div class="answer-actions">
 
@@ -705,7 +846,9 @@ function createQuestionCard(
           }
         </span>
 
+
         <button
+          type="button"
           class="save-btn"
           data-question-id="${question.id}"
         >
@@ -722,6 +865,7 @@ function createQuestionCard(
       ${
         partnerAnswer
           ? `
+
             <div class="partner-answer">
 
               <div class="partner-title">
@@ -735,6 +879,7 @@ function createQuestionCard(
               </p>
 
             </div>
+
           `
           : ""
       }
@@ -771,6 +916,11 @@ async function saveAnswer(
     );
 
 
+  if (!textarea) {
+    return;
+  }
+
+
   const answer =
     textarea.value.trim();
 
@@ -795,11 +945,18 @@ async function saveAnswer(
     );
 
 
+  if (!button) {
+    return;
+  }
+
+
   const originalText =
     button.textContent;
 
 
-  button.disabled = true;
+  button.disabled =
+    true;
+
 
   button.textContent =
     "Kaydediliyor...";
@@ -824,7 +981,6 @@ async function saveAnswer(
 
           answer:
             answer
-
         },
 
         {
@@ -848,7 +1004,9 @@ async function saveAnswer(
     );
 
 
-    button.disabled = false;
+    button.disabled =
+      false;
+
 
     button.textContent =
       originalText;
@@ -874,15 +1032,16 @@ async function saveAnswer(
 
 
 /* =====================================================
-   KENDİ CEVABINI BUL
+   KENDİ CEVABI
 ===================================================== */
 
 function getMyAnswer(
   questionId
 ) {
 
-  if (!currentUser)
+  if (!currentUser) {
     return null;
+  }
 
 
   return (
@@ -912,8 +1071,9 @@ function getPartnerAnswer(
   questionId
 ) {
 
-  if (!currentUser)
+  if (!currentUser) {
     return null;
+  }
 
 
   return (
@@ -958,8 +1118,7 @@ function updateStats() {
     total === 0
       ? 0
       : Math.round(
-          (answered / total) *
-          100
+          (answered / total) * 100
         );
 
 
@@ -989,47 +1148,55 @@ function setupFilters() {
 
   document
     .querySelectorAll(".filter-btn")
-    .forEach(button => {
+    .forEach(
+      button => {
 
-      button.addEventListener(
-        "click",
-        () => {
+        button.addEventListener(
+          "click",
+          () => {
 
-          document
-            .querySelectorAll(
-              ".filter-btn"
-            )
-            .forEach(btn =>
-              btn.classList.remove(
-                "active"
+            document
+              .querySelectorAll(
+                ".filter-btn"
               )
+              .forEach(
+                btn =>
+                  btn.classList.remove(
+                    "active"
+                  )
+              );
+
+
+            button.classList.add(
+              "active"
             );
 
 
-          button.classList.add(
-            "active"
-          );
+            currentFilter =
+              button.dataset.filter;
 
 
-          currentFilter =
-            button.dataset.filter;
+            renderQuestions();
 
+          }
+        );
 
-          renderQuestions();
-
-        }
-      );
-
-    });
+      }
+    );
 
 }
 
 
 /* =====================================================
-   KALDIĞIM YERDEN DEVAM ET
+   KALDIĞIM YERDEN
 ===================================================== */
 
 function continueFromWhereLeft() {
+
+  if (!currentUser) {
+    return;
+  }
+
 
   const firstUnanswered =
     questions.find(
@@ -1096,6 +1263,7 @@ async function logout() {
 
   currentUser = null;
   currentProfile = null;
+
   questions = [];
   answers = [];
 
@@ -1114,7 +1282,13 @@ async function logout() {
   passwordInput.value = "";
 
 
-  loginError.textContent = "";
+  loginError.textContent =
+    "";
+
+
+  selectPerson(
+    "gul"
+  );
 
 
   showToast(
@@ -1131,7 +1305,9 @@ async function logout() {
 let toastTimer;
 
 
-function showToast(message) {
+function showToast(
+  message
+) {
 
   toast.textContent =
     message;
@@ -1166,7 +1342,9 @@ function showToast(message) {
    HTML GÜVENLİĞİ
 ===================================================== */
 
-function escapeHtml(value) {
+function escapeHtml(
+  value
+) {
 
   return String(value)
 
@@ -1225,18 +1403,28 @@ supabaseClient.auth.onAuthStateChange(
         "SIGNED_OUT"
     ) {
 
-      currentUser = null;
+      currentUser =
+        null;
+
+      currentProfile =
+        null;
+
 
       appShell.classList.add(
         "hidden"
       );
 
+
       loginScreen.classList.remove(
         "hidden"
+      );
+
+
+      selectPerson(
+        "gul"
       );
 
     }
 
   }
 );
-```
