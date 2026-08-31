@@ -1,8 +1,14 @@
 <!DOCTYPE html>
-<html lang="tr"> 
-<head> 
+<html lang="tr">
+
+<head>
+
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
 
   <meta
     name="description"
@@ -12,15 +18,25 @@
   <title>Gül & Kağan | Bizim En'lerimiz</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link
+    rel="preconnect"
+    href="https://fonts.gstatic.com"
+    crossorigin
+  >
 
   <link
     href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap"
     rel="stylesheet"
   >
 
-  <link rel="stylesheet" href="style.css">
+  <link
+    rel="stylesheet"
+    href="style.css"
+  >
+
 </head>
+
 
 <body>
 
@@ -32,13 +48,20 @@
        LOGIN
   ====================================================== -->
 
-  <section id="loginScreen" class="login-screen">
+  <section
+    id="loginScreen"
+    class="login-screen"
+  >
 
     <div class="login-card">
 
-      <div class="login-heart">♥</div>
+      <div class="login-heart">
+        ♥
+      </div>
 
-      <div class="eyebrow">GÜL & KAĞAN</div>
+      <div class="eyebrow">
+        GÜL & KAĞAN
+      </div>
 
       <h1>
         Bizim<br>
@@ -51,8 +74,6 @@
       </p>
 
 
-      <!-- KİŞİ SEÇİMİ -->
-
       <div class="person-choice">
 
         <button
@@ -60,12 +81,16 @@
           class="person-btn active"
           data-person="gul"
         >
-          <span class="person-icon">🌹</span>
+
+          <span class="person-icon">
+            🌹
+          </span>
 
           <span>
             <strong>Gül</strong>
             <small>Ben Gül'üm</small>
           </span>
+
         </button>
 
 
@@ -74,18 +99,20 @@
           class="person-btn"
           data-person="kagan"
         >
-          <span class="person-icon">🤍</span>
+
+          <span class="person-icon">
+            🤍
+          </span>
 
           <span>
             <strong>Kağan</strong>
             <small>Ben Kağan'ım</small>
           </span>
+
         </button>
 
       </div>
 
-
-      <!-- E-POSTA -->
 
       <label for="email">
         E-posta
@@ -99,8 +126,6 @@
       >
 
 
-      <!-- ŞİFRE -->
-
       <label for="password">
         Şifre
       </label>
@@ -112,8 +137,6 @@
         placeholder="Şifren"
       >
 
-
-      <!-- GİRİŞ -->
 
       <button
         type="button"
@@ -150,6 +173,7 @@
     class="app-shell hidden"
   >
 
+
     <!-- TOPBAR -->
 
     <header class="topbar">
@@ -158,16 +182,35 @@
         class="brand"
         href="#"
       >
-        <span class="brand-heart">♥</span>
+
+        <span class="brand-heart">
+          ♥
+        </span>
+
         <span>
           Gül <b>&</b> Kağan
         </span>
+
       </a>
 
 
       <div class="user-area">
 
         <span id="welcomeUser"></span>
+
+
+        <!-- MÜZİK -->
+
+        <button
+          type="button"
+          class="music-btn"
+          id="musicBtn"
+          aria-label="Müziği aç veya kapat"
+          title="Müziği aç / kapat"
+        >
+          ♫
+        </button>
+
 
         <button
           type="button"
@@ -183,19 +226,43 @@
 
 
 
+    <!-- MÜZİK -->
+
+    <audio
+      id="backgroundMusic"
+      loop
+      preload="auto"
+    >
+
+      <source
+        src="./House%20Of%20The%20Rising%20Sun.mp3"
+        type="audio/mpeg"
+      >
+
+    </audio>
+
+
+
     <!-- HERO -->
 
     <section class="hero">
 
       <div class="eyebrow">
+
         BİZİM EN'LERİMİZ ·
-        <span id="heroYear">2026</span>
+
+        <span id="heroYear">
+          2026
+        </span>
+
       </div>
+
 
       <h1>
         Bugünün cevapları,<br>
         <em>yarının anıları.</em>
       </h1>
+
 
       <p>
         Birbirinizi ne kadar iyi tanıdığınızı görün,
@@ -209,10 +276,12 @@
         <a
           class="primary-btn"
           href="#questions"
+          id="startQuestionsBtn"
         >
           Cevaplamaya başla
           <span>→</span>
         </a>
+
 
         <button
           type="button"
@@ -237,11 +306,20 @@
 
       <div class="stat-card">
 
-        <span class="stat-icon">♡</span>
+        <span class="stat-icon">
+          ♡
+        </span>
 
         <div>
-          <strong id="answeredCount">0</strong>
-          <small>Cevaplanan</small>
+
+          <strong id="answeredCount">
+            0
+          </strong>
+
+          <small>
+            Cevaplanan
+          </small>
+
         </div>
 
       </div>
@@ -249,11 +327,20 @@
 
       <div class="stat-card">
 
-        <span class="stat-icon">✦</span>
+        <span class="stat-icon">
+          ✦
+        </span>
 
         <div>
-          <strong id="totalCount">0</strong>
-          <small>Toplam soru</small>
+
+          <strong id="totalCount">
+            0
+          </strong>
+
+          <small>
+            Toplam soru
+          </small>
+
         </div>
 
       </div>
@@ -263,11 +350,16 @@
 
         <div class="progress-top">
 
-          <strong id="progressText">0%</strong>
+          <strong id="progressText">
+            0%
+          </strong>
 
-          <small>Tamamlandı</small>
+          <small>
+            Tamamlandı
+          </small>
 
         </div>
+
 
         <div class="progress-track">
 
@@ -326,7 +418,9 @@
 
           <h2>
             Şimdi sıra sende,
-            <span id="currentPersonName">Gül</span>.
+            <span id="currentPersonName">
+              Gül
+            </span>.
           </h2>
 
         </div>
@@ -344,38 +438,77 @@
 
 
 
-      <!-- FİLTRELER -->
+      <!-- =================================================
+           KATEGORİLER
+      ================================================== -->
 
       <div
-        class="filters"
-        id="filters"
+        class="category-filter-wrapper"
+        id="categoryFilters"
       >
 
-        <button
-          type="button"
-          class="filter-btn active"
-          data-filter="all"
-        >
-          Tümü
-        </button>
+        <div class="filter-label">
+          KATEGORİ
+        </div>
 
-        <button
-          type="button"
-          class="filter-btn"
-          data-filter="answered"
-        >
-          Cevapladıklarım
-        </button>
+        <div class="category-filters">
 
-        <button
-          type="button"
-          class="filter-btn"
-          data-filter="unanswered"
-        >
-          Cevaplamadıklarım
-        </button>
+          <button
+            type="button"
+            class="category-filter active"
+            data-category="all"
+          >
+            ❤️ Tümü
+          </button>
+
+        </div>
 
       </div>
+
+
+
+      <!-- =================================================
+           CEVAP DURUMU
+      ================================================== -->
+
+      <div
+        class="status-filter-wrapper"
+      >
+
+        <div class="filter-label">
+          DURUM
+        </div>
+
+        <div class="status-filters">
+
+          <button
+            type="button"
+            class="status-filter active"
+            data-status="all"
+          >
+            Tümü
+          </button>
+
+          <button
+            type="button"
+            class="status-filter"
+            data-status="answered"
+          >
+            ✓ Cevapladıklarım
+          </button>
+
+          <button
+            type="button"
+            class="status-filter"
+            data-status="unanswered"
+          >
+            ○ Cevaplamadıklarım
+          </button>
+
+        </div>
+
+      </div>
+
 
 
       <!-- SORULAR -->
@@ -425,4 +558,5 @@
   <script src="script.js"></script>
 
 </body>
+
 </html>
