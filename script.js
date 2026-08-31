@@ -1,3 +1,4 @@
+```javascript
 const SUPABASE_URL = "https://nwvkauyoncedbetjridz.supabase.co";
 
 const SUPABASE_KEY =
@@ -79,10 +80,23 @@ const continueBtn =
    BAŞLANGIÇ
 ===================================================== */
 
-document.addEventListener("DOMContentLoaded", init);
+document.addEventListener(
+  "DOMContentLoaded",
+  init
+);
 
 
 async function init() {
+
+  /*
+    ÖNEMLİ:
+    Sayfa açılır açılmaz uygulamayı gizliyoruz.
+    Böylece giriş yapılmadan sorular görünemez.
+  */
+
+  loginScreen.classList.remove("hidden");
+  appShell.classList.add("hidden");
+
 
   document.getElementById("heroYear").textContent =
     CURRENT_YEAR;
@@ -90,28 +104,47 @@ async function init() {
   document.getElementById("yearDisplay").textContent =
     CURRENT_YEAR;
 
+
   setupPersonButtons();
   setupFilters();
 
-  loginBtn.addEventListener("click", login);
 
-  passwordInput.addEventListener("keydown", event => {
+  loginBtn.addEventListener(
+    "click",
+    login
+  );
 
-    if (event.key === "Enter") {
-      login();
+
+  passwordInput.addEventListener(
+    "keydown",
+    event => {
+
+      if (event.key === "Enter") {
+        login();
+      }
+
     }
+  );
 
-  });
 
   document
     .getElementById("logoutBtn")
-    .addEventListener("click", logout);
+    .addEventListener(
+      "click",
+      logout
+    );
+
 
   continueBtn.addEventListener(
     "click",
     continueFromWhereLeft
   );
 
+
+  /*
+    Supabase daha önce giriş yapılmış
+    bir oturum bulursa direkt uygulamaya gir.
+  */
 
   const {
     data: {
@@ -122,9 +155,21 @@ async function init() {
 
   if (session) {
 
-    currentUser = session.user;
+    currentUser =
+      session.user;
 
     await enterApplication();
+
+  } else {
+
+    /*
+      Oturum yoksa giriş ekranında kal.
+    */
+
+    currentUser = null;
+
+    loginScreen.classList.remove("hidden");
+    appShell.classList.add("hidden");
 
   }
 
@@ -138,30 +183,40 @@ async function init() {
 function setupPersonButtons() {
 
   const buttons =
-    document.querySelectorAll(".person-btn");
+    document.querySelectorAll(
+      ".person-btn"
+    );
+
 
   buttons.forEach(button => {
 
-    button.addEventListener("click", () => {
+    button.addEventListener(
+      "click",
+      () => {
 
-      buttons.forEach(btn =>
-        btn.classList.remove("active")
-      );
+        buttons.forEach(btn =>
+          btn.classList.remove("active")
+        );
 
-      button.classList.add("active");
 
-      selectedPerson =
-        button.dataset.person;
+        button.classList.add("active");
 
-      const name =
-        selectedPerson === "gul"
-          ? "Gül"
-          : "Kağan";
 
-      loginBtn.innerHTML =
-        `${name} olarak giriş yap <span>→</span>`;
+        selectedPerson =
+          button.dataset.person;
 
-    });
+
+        const name =
+          selectedPerson === "gul"
+            ? "Gül"
+            : "Kağan";
+
+
+        loginBtn.innerHTML =
+          `${name} olarak giriş yap <span>→</span>`;
+
+      }
+    );
 
   });
 
@@ -176,8 +231,10 @@ async function login() {
 
   loginError.textContent = "";
 
+
   const email =
     emailInput.value.trim();
+
 
   const password =
     passwordInput.value;
@@ -202,30 +259,51 @@ async function login() {
   const {
     data,
     error
-  } = await supabaseClient.auth.signInWithPassword({
+  } =
+    await supabaseClient.auth.signInWithPassword({
 
-    email,
-    password
+      email,
+      password
 
-  });
+    });
 
 
   if (error) {
 
+    console.error(
+      "Giriş hatası:",
+      error
+    );
+
+
     loginError.textContent =
       "E-posta veya şifre hatalı. Lütfen tekrar dene.";
 
+
     loginBtn.disabled = false;
 
+
     loginBtn.innerHTML =
-      `${selectedPerson === "gul" ? "Gül" : "Kağan"} olarak giriş yap <span>→</span>`;
+      `${selectedPerson === "gul"
+        ? "Gül"
+        : "Kağan"
+      } olarak giriş yap <span>→</span>`;
+
 
     return;
 
   }
 
 
-  currentUser = data.user;
+  /*
+    Supabase oturumu tarayıcıda saklayacak.
+    Böylece sonraki ziyaretlerde tekrar
+    şifre girmek gerekmeyecek.
+  */
+
+  currentUser =
+    data.user;
+
 
   await enterApplication();
 
@@ -238,8 +316,11 @@ async function login() {
 
 async function enterApplication() {
 
-  loginScreen.classList.add("hidden");
+  /*
+    Önce kullanıcıyı uygulamaya alıyoruz.
+  */
 
+  loginScreen.classList.add("hidden");
   appShell.classList.remove("hidden");
 
 
@@ -248,6 +329,7 @@ async function enterApplication() {
   await loadQuestions();
 
   await loadAnswers();
+
 
   renderQuestions();
 
@@ -264,30 +346,44 @@ async function enterApplication() {
 
 async function loadProfile() {
 
+  if (!currentUser)
+    return;
+
+
   const {
     data,
     error
-  } = await supabaseClient
-    .from("profiles")
-    .select("*")
-    .eq("id", currentUser.id)
-    .single();
+  } =
+    await supabaseClient
+      .from("profiles")
+      .select("*")
+      .eq(
+        "id",
+        currentUser.id
+      )
+      .single();
 
 
   if (error) {
 
-    console.error(error);
+    console.error(
+      "Profil hatası:",
+      error
+    );
+
 
     showToast(
       "Profil bilgisi alınamadı."
     );
+
 
     return;
 
   }
 
 
-  currentProfile = data;
+  currentProfile =
+    data;
 
 }
 
@@ -301,29 +397,42 @@ async function loadQuestions() {
   const {
     data,
     error
-  } = await supabaseClient
-    .from("questions")
-    .select("*")
-    .eq("active", true)
-    .order("sort_order", {
-      ascending: true
-    });
+  } =
+    await supabaseClient
+      .from("questions")
+      .select("*")
+      .eq(
+        "active",
+        true
+      )
+      .order(
+        "sort_order",
+        {
+          ascending: true
+        }
+      );
 
 
   if (error) {
 
-    console.error(error);
+    console.error(
+      "Soru hatası:",
+      error
+    );
+
 
     showToast(
       "Sorular yüklenemedi."
     );
+
 
     return;
 
   }
 
 
-  questions = data || [];
+  questions =
+    data || [];
 
 }
 
@@ -334,29 +443,43 @@ async function loadQuestions() {
 
 async function loadAnswers() {
 
+  if (!currentUser)
+    return;
+
+
   const {
     data,
     error
-  } = await supabaseClient
-    .from("answers")
-    .select("*")
-    .eq("year", CURRENT_YEAR);
+  } =
+    await supabaseClient
+      .from("answers")
+      .select("*")
+      .eq(
+        "year",
+        CURRENT_YEAR
+      );
 
 
   if (error) {
 
-    console.error(error);
+    console.error(
+      "Cevap hatası:",
+      error
+    );
+
 
     showToast(
       "Cevaplar yüklenemedi."
     );
+
 
     return;
 
   }
 
 
-  answers = data || [];
+  answers =
+    data || [];
 
 }
 
@@ -383,17 +506,15 @@ function updateUserInterface() {
     name;
 
 
-  const heroYear =
-    document.getElementById("heroYear");
-
-  const yearDisplay =
-    document.getElementById("yearDisplay");
-
-
-  heroYear.textContent =
+  document.getElementById(
+    "heroYear"
+  ).textContent =
     CURRENT_YEAR;
 
-  yearDisplay.textContent =
+
+  document.getElementById(
+    "yearDisplay"
+  ).textContent =
     CURRENT_YEAR;
 
 }
@@ -409,31 +530,47 @@ function renderQuestions() {
     [...questions];
 
 
-  if (currentFilter === "answered") {
+  if (
+    currentFilter ===
+    "answered"
+  ) {
 
     visibleQuestions =
-      visibleQuestions.filter(question =>
-        getMyAnswer(question.id)
+      visibleQuestions.filter(
+        question =>
+          getMyAnswer(
+            question.id
+          )
       );
 
   }
 
 
-  if (currentFilter === "unanswered") {
+  if (
+    currentFilter ===
+    "unanswered"
+  ) {
 
     visibleQuestions =
-      visibleQuestions.filter(question =>
-        !getMyAnswer(question.id)
+      visibleQuestions.filter(
+        question =>
+          !getMyAnswer(
+            question.id
+          )
       );
 
   }
 
 
-  if (!visibleQuestions.length) {
+  if (
+    !visibleQuestions.length
+  ) {
 
     questionList.innerHTML = `
       <div class="empty">
-        <div style="font-size:40px;margin-bottom:10px;">♡</div>
+        <div style="font-size:40px;margin-bottom:10px;">
+          ♡
+        </div>
         Bu filtrede gösterilecek soru yok.
       </div>
     `;
@@ -445,11 +582,12 @@ function renderQuestions() {
 
   questionList.innerHTML =
     visibleQuestions
-      .map((question, index) =>
-        createQuestionCard(
-          question,
-          index
-        )
+      .map(
+        (question, index) =>
+          createQuestionCard(
+            question,
+            index
+          )
       )
       .join("");
 
@@ -460,9 +598,12 @@ function renderQuestions() {
 
       button.addEventListener(
         "click",
-        () => saveAnswer(
-          Number(button.dataset.questionId)
-        )
+        () =>
+          saveAnswer(
+            Number(
+              button.dataset.questionId
+            )
+          )
       );
 
     });
@@ -480,11 +621,15 @@ function createQuestionCard(
 ) {
 
   const myAnswer =
-    getMyAnswer(question.id);
+    getMyAnswer(
+      question.id
+    );
 
 
   const partnerAnswer =
-    getPartnerAnswer(question.id);
+    getPartnerAnswer(
+      question.id
+    );
 
 
   const answered =
@@ -506,16 +651,21 @@ function createQuestionCard(
       </div>
 
       <h3 class="question-title">
-        ${escapeHtml(question.question)}
+        ${escapeHtml(
+          question.question
+        )}
       </h3>
 
       <textarea
         class="answer-area"
         id="answer-${question.id}"
         placeholder="Cevabını buraya yaz..."
-      >${myAnswer
-        ? escapeHtml(myAnswer.answer)
-        : ""
+      >${
+        myAnswer
+          ? escapeHtml(
+              myAnswer.answer
+            )
+          : ""
       }</textarea>
 
       <div class="answer-actions">
@@ -524,18 +674,22 @@ function createQuestionCard(
           class="saved-label"
           id="saved-${question.id}"
         >
-          ${answered
-            ? "✓ Cevabın kayıtlı"
-            : "Henüz cevaplanmadı"}
+          ${
+            answered
+              ? "✓ Cevabın kayıtlı"
+              : "Henüz cevaplanmadı"
+          }
         </span>
 
         <button
           class="save-btn"
           data-question-id="${question.id}"
         >
-          ${answered
-            ? "Cevabı güncelle"
-            : "Cevabı kaydet"}
+          ${
+            answered
+              ? "Cevabı güncelle"
+              : "Cevabı kaydet"
+          }
         </button>
 
       </div>
@@ -572,7 +726,20 @@ function createQuestionCard(
    CEVAP KAYDET
 ===================================================== */
 
-async function saveAnswer(questionId) {
+async function saveAnswer(
+  questionId
+) {
+
+  if (!currentUser) {
+
+    showToast(
+      "Önce giriş yapmalısın."
+    );
+
+    return;
+
+  }
+
 
   const textarea =
     document.getElementById(
@@ -589,6 +756,7 @@ async function saveAnswer(questionId) {
     showToast(
       "Önce cevabını yazmalısın ❤️"
     );
+
 
     textarea.focus();
 
@@ -615,42 +783,52 @@ async function saveAnswer(questionId) {
 
   const {
     error
-  } = await supabaseClient
-    .from("answers")
-    .upsert({
+  } =
+    await supabaseClient
+      .from("answers")
+      .upsert(
 
-      user_id:
-        currentUser.id,
+        {
+          user_id:
+            currentUser.id,
 
-      question_id:
-        questionId,
+          question_id:
+            questionId,
 
-      year:
-        CURRENT_YEAR,
+          year:
+            CURRENT_YEAR,
 
-      answer:
-        answer
+          answer:
+            answer
 
-    }, {
+        },
 
-      onConflict:
-        "user_id,question_id,year"
+        {
+          onConflict:
+            "user_id,question_id,year"
+        }
 
-    });
+      );
 
 
   if (error) {
 
-    console.error(error);
+    console.error(
+      "Cevap kayıt hatası:",
+      error
+    );
+
 
     showToast(
       "Cevap kaydedilemedi."
     );
 
+
     button.disabled = false;
 
     button.textContent =
       originalText;
+
 
     return;
 
@@ -675,19 +853,29 @@ async function saveAnswer(questionId) {
    KENDİ CEVABINI BUL
 ===================================================== */
 
-function getMyAnswer(questionId) {
+function getMyAnswer(
+  questionId
+) {
 
   if (!currentUser)
     return null;
 
 
-  return answers.find(answer =>
+  return (
+    answers.find(
+      answer =>
 
-    answer.user_id === currentUser.id &&
-    answer.question_id === questionId &&
-    answer.year === CURRENT_YEAR
+        answer.user_id ===
+          currentUser.id &&
 
-  ) || null;
+        answer.question_id ===
+          questionId &&
+
+        answer.year ===
+          CURRENT_YEAR
+
+    ) || null
+  );
 
 }
 
@@ -696,19 +884,29 @@ function getMyAnswer(questionId) {
    PARTNER CEVABI
 ===================================================== */
 
-function getPartnerAnswer(questionId) {
+function getPartnerAnswer(
+  questionId
+) {
 
   if (!currentUser)
     return null;
 
 
-  return answers.find(answer =>
+  return (
+    answers.find(
+      answer =>
 
-    answer.user_id !== currentUser.id &&
-    answer.question_id === questionId &&
-    answer.year === CURRENT_YEAR
+        answer.user_id !==
+          currentUser.id &&
 
-  ) || null;
+        answer.question_id ===
+          questionId &&
+
+        answer.year ===
+          CURRENT_YEAR
+
+    ) || null
+  );
 
 }
 
@@ -720,8 +918,11 @@ function getPartnerAnswer(questionId) {
 function updateStats() {
 
   const answered =
-    questions.filter(question =>
-      getMyAnswer(question.id)
+    questions.filter(
+      question =>
+        getMyAnswer(
+          question.id
+        )
     ).length;
 
 
@@ -733,18 +934,22 @@ function updateStats() {
     total === 0
       ? 0
       : Math.round(
-          (answered / total) * 100
+          (answered / total) *
+          100
         );
 
 
   answeredCount.textContent =
     answered;
 
+
   totalCount.textContent =
     total;
 
+
   progressText.textContent =
     `${percentage}%`;
+
 
   progressFill.style.width =
     `${percentage}%`;
@@ -767,15 +972,24 @@ function setupFilters() {
         () => {
 
           document
-            .querySelectorAll(".filter-btn")
+            .querySelectorAll(
+              ".filter-btn"
+            )
             .forEach(btn =>
-              btn.classList.remove("active")
+              btn.classList.remove(
+                "active"
+              )
             );
 
-          button.classList.add("active");
+
+          button.classList.add(
+            "active"
+          );
+
 
           currentFilter =
             button.dataset.filter;
+
 
           renderQuestions();
 
@@ -794,8 +1008,11 @@ function setupFilters() {
 function continueFromWhereLeft() {
 
   const firstUnanswered =
-    questions.find(question =>
-      !getMyAnswer(question.id)
+    questions.find(
+      question =>
+        !getMyAnswer(
+          question.id
+        )
     );
 
 
@@ -814,11 +1031,14 @@ function continueFromWhereLeft() {
         block: "center"
       });
 
-      setTimeout(() => {
-        element.focus();
-      }, 500);
+
+      setTimeout(
+        () => element.focus(),
+        500
+      );
 
     }
+
 
     return;
 
@@ -826,7 +1046,9 @@ function continueFromWhereLeft() {
 
 
   document
-    .getElementById("questions")
+    .getElementById(
+      "questions"
+    )
     .scrollIntoView({
       behavior: "smooth"
     });
@@ -847,16 +1069,29 @@ async function logout() {
 
   await supabaseClient.auth.signOut();
 
+
   currentUser = null;
   currentProfile = null;
   questions = [];
   answers = [];
 
-  appShell.classList.add("hidden");
 
-  loginScreen.classList.remove("hidden");
+  appShell.classList.add(
+    "hidden"
+  );
 
+
+  loginScreen.classList.remove(
+    "hidden"
+  );
+
+
+  emailInput.value = "";
   passwordInput.value = "";
+
+
+  loginError.textContent = "";
+
 
   showToast(
     "Çıkış yapıldı."
@@ -877,16 +1112,28 @@ function showToast(message) {
   toast.textContent =
     message;
 
-  toast.classList.add("show");
 
-  clearTimeout(toastTimer);
+  toast.classList.add(
+    "show"
+  );
+
+
+  clearTimeout(
+    toastTimer
+  );
+
 
   toastTimer =
-    setTimeout(() => {
+    setTimeout(
+      () => {
 
-      toast.classList.remove("show");
+        toast.classList.remove(
+          "show"
+        );
 
-    }, 2600);
+      },
+      2600
+    );
 
 }
 
@@ -899,15 +1146,30 @@ function escapeHtml(value) {
 
   return String(value)
 
-    .replaceAll("&", "&amp;")
+    .replaceAll(
+      "&",
+      "&amp;"
+    )
 
-    .replaceAll("<", "&lt;")
+    .replaceAll(
+      "<",
+      "&lt;"
+    )
 
-    .replaceAll(">", "&gt;")
+    .replaceAll(
+      ">",
+      "&gt;"
+    )
 
-    .replaceAll('"', "&quot;")
+    .replaceAll(
+      '"',
+      "&quot;"
+    )
 
-    .replaceAll("'", "&#039;");
+    .replaceAll(
+      "'",
+      "&#039;"
+    );
 
 }
 
@@ -917,10 +1179,14 @@ function escapeHtml(value) {
 ===================================================== */
 
 supabaseClient.auth.onAuthStateChange(
-  async (event, session) => {
+  async (
+    event,
+    session
+  ) => {
 
     if (
-      event === "SIGNED_IN" &&
+      event ===
+        "SIGNED_IN" &&
       session
     ) {
 
@@ -929,5 +1195,24 @@ supabaseClient.auth.onAuthStateChange(
 
     }
 
+
+    if (
+      event ===
+        "SIGNED_OUT"
+    ) {
+
+      currentUser = null;
+
+      appShell.classList.add(
+        "hidden"
+      );
+
+      loginScreen.classList.remove(
+        "hidden"
+      );
+
+    }
+
   }
 );
+```
