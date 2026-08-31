@@ -4,6 +4,7 @@ const SUPABASE_URL =
 const SUPABASE_KEY =
   "sb_publishable_Rs6Nh2FBLVQHiBW_owiMyQ_2ax0VA-t";
 
+
 const supabaseClient =
   window.supabase.createClient(
     SUPABASE_URL,
@@ -15,7 +16,8 @@ const supabaseClient =
    AYARLAR
 ===================================================== */
 
-const CURRENT_YEAR = new Date().getFullYear();
+const CURRENT_YEAR =
+  new Date().getFullYear();
 
 let currentUser = null;
 let currentProfile = null;
@@ -23,11 +25,68 @@ let currentProfile = null;
 let questions = [];
 let answers = [];
 
-let currentFilter = "all";
+let currentCategory = "all";
+let currentStatus = "all";
+
 let selectedPerson = "gul";
 
 let isLoadingApplication = false;
+
 let toastTimer = null;
+
+
+/* =====================================================
+   KATEGORİLER
+===================================================== */
+
+const CATEGORY_CONFIG = {
+
+  "Film & Dizi": {
+    emoji: "🎬",
+    label: "Film & Dizi"
+  },
+
+  "Oyun": {
+    emoji: "🎮",
+    label: "Oyun"
+  },
+
+  "Yemek": {
+    emoji: "🍕",
+    label: "Yemek"
+  },
+
+  "Kitap & Şiir": {
+    emoji: "📖",
+    label: "Kitap & Şiir"
+  },
+
+  "Müzik": {
+    emoji: "🎵",
+    label: "Müzik"
+  },
+
+  "Birbirimiz": {
+    emoji: "❤️",
+    label: "Birbirimiz"
+  },
+
+  "Hayaller": {
+    emoji: "✈️",
+    label: "Hayaller"
+  },
+
+  "Tahmin": {
+    emoji: "🎯",
+    label: "Tahmin"
+  },
+
+  "Gelecek": {
+    emoji: "🔮",
+    label: "Gelecek"
+  }
+
+};
 
 
 /* =====================================================
@@ -79,6 +138,28 @@ const currentPersonName =
 const continueBtn =
   document.getElementById("continueBtn");
 
+const categoryFilters =
+  document.getElementById("categoryFilters");
+
+const categoryFilterContainer =
+  categoryFilters
+    ? categoryFilters.querySelector(
+        ".category-filters"
+      )
+    : null;
+
+const backgroundMusic =
+  document.getElementById(
+    "backgroundMusic"
+  );
+
+const musicBtn =
+  document.getElementById(
+    "musicBtn"
+  );
+
+let musicEnabled = true;
+
 
 /* =====================================================
    BAŞLANGIÇ
@@ -92,10 +173,14 @@ document.addEventListener(
 
 async function init() {
 
-  console.log("=================================");
-  console.log("GÜL & KAĞAN UYGULAMASI");
-  console.log("BAŞLATILIYOR");
-  console.log("=================================");
+  console.log(
+    "GÜL & KAĞAN UYGULAMASI"
+  );
+
+  console.log(
+    "FINAL SÜRÜM BAŞLATILIYOR"
+  );
+
 
   showLoginScreen();
 
@@ -103,44 +188,11 @@ async function init() {
 
   setupPersonButtons();
 
-  setupFilters();
+  setupStatusFilters();
 
-  if (loginBtn) {
-    loginBtn.addEventListener(
-      "click",
-      login
-    );
-  }
+  setupMusic();
 
-  if (passwordInput) {
-    passwordInput.addEventListener(
-      "keydown",
-      event => {
-
-        if (event.key === "Enter") {
-          login();
-        }
-
-      }
-    );
-  }
-
-  const logoutBtn =
-    document.getElementById("logoutBtn");
-
-  if (logoutBtn) {
-    logoutBtn.addEventListener(
-      "click",
-      logout
-    );
-  }
-
-  if (continueBtn) {
-    continueBtn.addEventListener(
-      "click",
-      continueFromWhereLeft
-    );
-  }
+  setupLogin();
 
 
   try {
@@ -177,11 +229,6 @@ async function init() {
       currentUser =
         session.user;
 
-      console.log(
-        "Mevcut session bulundu:",
-        currentUser.email
-      );
-
       await loadApplication();
 
     } else {
@@ -209,6 +256,70 @@ async function init() {
 
 
 /* =====================================================
+   LOGIN EVENTLERİ
+===================================================== */
+
+function setupLogin() {
+
+  if (loginBtn) {
+
+    loginBtn.addEventListener(
+      "click",
+      login
+    );
+
+  }
+
+
+  if (passwordInput) {
+
+    passwordInput.addEventListener(
+      "keydown",
+      event => {
+
+        if (
+          event.key === "Enter"
+        ) {
+
+          login();
+
+        }
+
+      }
+    );
+
+  }
+
+
+  const logoutBtn =
+    document.getElementById(
+      "logoutBtn"
+    );
+
+
+  if (logoutBtn) {
+
+    logoutBtn.addEventListener(
+      "click",
+      logout
+    );
+
+  }
+
+
+  if (continueBtn) {
+
+    continueBtn.addEventListener(
+      "click",
+      continueFromWhereLeft
+    );
+
+  }
+
+}
+
+
+/* =====================================================
    YIL
 ===================================================== */
 
@@ -226,14 +337,18 @@ function setYear() {
 
 
   if (heroYear) {
+
     heroYear.textContent =
       CURRENT_YEAR;
+
   }
 
 
   if (yearDisplay) {
+
     yearDisplay.textContent =
       CURRENT_YEAR;
+
   }
 
 }
@@ -257,14 +372,22 @@ function setupPersonButtons() {
       "click",
       function () {
 
-        buttons.forEach(btn => {
-          btn.classList.remove("active");
-        });
+        buttons.forEach(
+          btn =>
+            btn.classList.remove(
+              "active"
+            )
+        );
 
-        this.classList.add("active");
+
+        this.classList.add(
+          "active"
+        );
+
 
         selectedPerson =
           this.dataset.person;
+
 
         updateLoginButton();
 
@@ -282,13 +405,19 @@ function setupPersonButtons() {
 
   if (gulButton) {
 
-    buttons.forEach(btn => {
-      btn.classList.remove("active");
-    });
+    buttons.forEach(
+      btn =>
+        btn.classList.remove(
+          "active"
+        )
+    );
 
-    gulButton.classList.add("active");
+    gulButton.classList.add(
+      "active"
+    );
 
     selectedPerson = "gul";
+
   }
 
 
@@ -328,10 +457,12 @@ async function login() {
 
   clearLoginError();
 
+
   const email =
     emailInput
       ? emailInput.value.trim()
       : "";
+
 
   const password =
     passwordInput
@@ -346,6 +477,7 @@ async function login() {
     );
 
     return;
+
   }
 
 
@@ -380,6 +512,7 @@ async function login() {
       );
 
       return;
+
     }
 
 
@@ -390,6 +523,7 @@ async function login() {
       );
 
       return;
+
     }
 
 
@@ -397,13 +531,15 @@ async function login() {
       data.user;
 
 
-    console.log(
-      "Giriş başarılı:",
-      currentUser.id
-    );
-
-
     await loadApplication();
+
+
+    /*
+      Tarayıcı izin verirse
+      login sonrasında müziği başlat.
+    */
+
+    attemptStartMusic();
 
 
   } catch (error) {
@@ -451,12 +587,6 @@ async function loadApplication() {
 
   try {
 
-    /*
-      Login olmadan uygulama gösterilmiyor.
-      Ancak login başarılı olduktan sonra
-      uygulama açılıyor.
-    */
-
     loginScreen.classList.add(
       "hidden"
     );
@@ -480,6 +610,7 @@ async function loadApplication() {
       );
 
       return;
+
     }
 
 
@@ -497,6 +628,7 @@ async function loadApplication() {
       );
 
       return;
+
     }
 
 
@@ -514,8 +646,11 @@ async function loadApplication() {
       );
 
       answers = [];
+
     }
 
+
+    buildCategoryFilters();
 
     renderQuestions();
 
@@ -774,8 +909,7 @@ async function loadAnswers() {
 
       return {
         success: false,
-        message:
-          error.message
+        message: error.message
       };
 
     }
@@ -795,8 +929,7 @@ async function loadAnswers() {
 
     return {
       success: false,
-      message:
-        error.message
+      message: error.message
     };
 
   }
@@ -805,7 +938,7 @@ async function loadAnswers() {
 
 
 /* =====================================================
-   ARAYÜZ
+   KULLANICI ARAYÜZÜ
 ===================================================== */
 
 function updateUserInterface() {
@@ -817,11 +950,9 @@ function updateUserInterface() {
 
   const name =
     currentProfile.name ||
-    (
-      currentProfile.email ||
-      currentUser?.email ||
-      "Kullanıcı"
-    );
+    currentProfile.email ||
+    currentUser?.email ||
+    "Kullanıcı";
 
 
   if (welcomeUser) {
@@ -846,6 +977,234 @@ function updateUserInterface() {
 
 
 /* =====================================================
+   KATEGORİ FİLTRELERİNİ OLUŞTUR
+===================================================== */
+
+function buildCategoryFilters() {
+
+  if (!categoryFilterContainer) {
+    return;
+  }
+
+
+  const categories = [];
+
+
+  questions.forEach(question => {
+
+    const category =
+      question.category ||
+      "Diğer";
+
+
+    if (
+      !categories.includes(
+        category
+      )
+    ) {
+
+      categories.push(
+        category
+      );
+
+    }
+
+  });
+
+
+  categoryFilterContainer.innerHTML = "";
+
+
+  const allButton =
+    document.createElement(
+      "button"
+    );
+
+
+  allButton.type = "button";
+
+  allButton.className =
+    "category-filter" +
+    (
+      currentCategory === "all"
+        ? " active"
+        : ""
+    );
+
+  allButton.dataset.category =
+    "all";
+
+  allButton.textContent =
+    "❤️ Tümü";
+
+
+  categoryFilterContainer.appendChild(
+    allButton
+  );
+
+
+  categories.forEach(
+    category => {
+
+      const button =
+        document.createElement(
+          "button"
+        );
+
+
+      button.type =
+        "button";
+
+
+      button.className =
+        "category-filter" +
+        (
+          currentCategory ===
+          category
+            ? " active"
+            : ""
+        );
+
+
+      button.dataset.category =
+        category;
+
+
+      const config =
+        CATEGORY_CONFIG[
+          category
+        ];
+
+
+      const emoji =
+        config?.emoji ||
+        "♡";
+
+
+      button.textContent =
+        `${emoji} ${category}`;
+
+
+      categoryFilterContainer.appendChild(
+        button
+      );
+
+    }
+  );
+
+
+  setupCategoryFilterEvents();
+
+}
+
+
+/* =====================================================
+   KATEGORİ EVENTLERİ
+===================================================== */
+
+function setupCategoryFilterEvents() {
+
+  if (!categoryFilterContainer) {
+    return;
+  }
+
+
+  categoryFilterContainer
+    .querySelectorAll(
+      ".category-filter"
+    )
+    .forEach(button => {
+
+      button.addEventListener(
+        "click",
+        () => {
+
+          currentCategory =
+            button.dataset.category;
+
+
+          categoryFilterContainer
+            .querySelectorAll(
+              ".category-filter"
+            )
+            .forEach(btn =>
+              btn.classList.remove(
+                "active"
+              )
+            );
+
+
+          button.classList.add(
+            "active"
+          );
+
+
+          renderQuestions();
+
+          document
+            .getElementById(
+              "questions"
+            )
+            ?.scrollIntoView({
+              behavior: "smooth",
+              block: "start"
+            });
+
+        }
+      );
+
+    });
+
+}
+
+
+/* =====================================================
+   DURUM FİLTRELERİ
+===================================================== */
+
+function setupStatusFilters() {
+
+  document
+    .querySelectorAll(
+      ".status-filter"
+    )
+    .forEach(button => {
+
+      button.addEventListener(
+        "click",
+        () => {
+
+          currentStatus =
+            button.dataset.status;
+
+
+          document
+            .querySelectorAll(
+              ".status-filter"
+            )
+            .forEach(btn =>
+              btn.classList.remove(
+                "active"
+              )
+            );
+
+
+          button.classList.add(
+            "active"
+          );
+
+
+          renderQuestions();
+
+        }
+      );
+
+    });
+
+}
+
+
+/* =====================================================
    SORULARI ÇİZ
 ===================================================== */
 
@@ -860,8 +1219,26 @@ function renderQuestions() {
     [...questions];
 
 
+  /* KATEGORİ */
+
   if (
-    currentFilter === "answered"
+    currentCategory !== "all"
+  ) {
+
+    visibleQuestions =
+      visibleQuestions.filter(
+        question =>
+          question.category ===
+          currentCategory
+      );
+
+  }
+
+
+  /* DURUM */
+
+  if (
+    currentStatus === "answered"
   ) {
 
     visibleQuestions =
@@ -876,7 +1253,7 @@ function renderQuestions() {
 
 
   if (
-    currentFilter === "unanswered"
+    currentStatus === "unanswered"
   ) {
 
     visibleQuestions =
@@ -896,10 +1273,7 @@ function renderQuestions() {
 
       <div class="empty">
 
-        <div style="
-          font-size:42px;
-          margin-bottom:12px;
-        ">
+        <div class="empty-icon">
           ♡
         </div>
 
@@ -911,52 +1285,74 @@ function renderQuestions() {
           }
         </strong>
 
+        <p>
+          ${
+            currentStatus === "answered"
+              ? "Henüz cevapladığın bir soru bulunmuyor."
+              : currentStatus === "unanswered"
+                ? "Bu kategoride tüm soruları cevaplamışsın. ❤️"
+                : "Başka bir kategori seçebilirsin."
+          }
+        </p>
+
       </div>
 
     `;
 
     return;
+
   }
 
 
   /*
-    KATEGORİLERE AYIR
+    TÜMÜ seçiliyorsa kategorilere ayır.
+    Tek kategori seçiliyorsa kategori başlığını
+    yine göster ama yalnızca o kategori gelir.
   */
 
   const groups = [];
 
 
-  visibleQuestions.forEach(question => {
+  visibleQuestions.forEach(
+    question => {
 
-    const category =
-      question.category ||
-      "Diğer";
+      const category =
+        question.category ||
+        "Diğer";
 
 
-    let group =
-      groups.find(
-        item =>
-          item.category === category
+      let group =
+        groups.find(
+          item =>
+            item.category ===
+            category
+        );
+
+
+      if (!group) {
+
+        group = {
+
+          category,
+
+          questions: []
+
+        };
+
+
+        groups.push(
+          group
+        );
+
+      }
+
+
+      group.questions.push(
+        question
       );
 
-
-    if (!group) {
-
-      group = {
-        category,
-        questions: []
-      };
-
-      groups.push(group);
-
     }
-
-
-    group.questions.push(
-      question
-    );
-
-  });
+  );
 
 
   questionList.innerHTML =
@@ -975,7 +1371,9 @@ function renderQuestions() {
   */
 
   document
-    .querySelectorAll(".save-btn")
+    .querySelectorAll(
+      ".save-btn"
+    )
     .forEach(button => {
 
       button.addEventListener(
@@ -1000,35 +1398,19 @@ function renderQuestions() {
    KATEGORİ
 ===================================================== */
 
-function createCategory(group) {
+function createCategory(
+  group
+) {
 
-  const categoryIcons = {
-
-    "Film & Dizi": "🎬",
-
-    "Oyun": "🎮",
-
-    "Yemek": "🍽️",
-
-    "Kitap & Şiir": "📖",
-
-    "Müzik": "🎵",
-
-    "Birbirimiz": "❤️",
-
-    "Hayaller": "🌟",
-
-    "Tahmin": "🎯",
-
-    "Gelecek": "🔮"
-
-  };
+  const config =
+    CATEGORY_CONFIG[
+      group.category
+    ];
 
 
   const icon =
-    categoryIcons[
-      group.category
-    ] || "♡";
+    config?.emoji ||
+    "♡";
 
 
   return `
@@ -1044,11 +1426,15 @@ function createCategory(group) {
         <div>
 
           <div class="eyebrow">
-            ${escapeHtml(group.category)}
+            ${escapeHtml(
+              group.category
+            )}
           </div>
 
           <h3>
-            ${escapeHtml(group.category)}
+            ${escapeHtml(
+              group.category
+            )}
           </h3>
 
         </div>
@@ -1060,10 +1446,9 @@ function createCategory(group) {
 
         ${group.questions
           .map(
-            (question, index) =>
+            question =>
               createQuestionCard(
-                question,
-                index
+                question
               )
           )
           .join("")}
@@ -1082,8 +1467,7 @@ function createCategory(group) {
 ===================================================== */
 
 function createQuestionCard(
-  question,
-  index
+  question
 ) {
 
   const myAnswer =
@@ -1121,17 +1505,25 @@ function createQuestionCard(
   return `
 
     <article
-      class="question-card"
+      class="question-card ${
+        answered
+          ? "is-answered"
+          : ""
+      }"
     >
 
       <div class="question-number">
 
-        ${emoji}
+        <span>
+          ${emoji}
+        </span>
 
-        ${String(
-          question.sort_order ??
-          index + 1
-        ).padStart(2, "0")}
+        <span>
+          ${String(
+            question.sort_order ??
+            ""
+          ).padStart(2, "0")}
+        </span>
 
       </div>
 
@@ -1243,6 +1635,7 @@ async function saveAnswer(
     );
 
     return;
+
   }
 
 
@@ -1270,6 +1663,7 @@ async function saveAnswer(
     textarea.focus();
 
     return;
+
   }
 
 
@@ -1300,6 +1694,7 @@ async function saveAnswer(
         .upsert(
 
           {
+
             user_id:
               currentUser.id,
 
@@ -1311,11 +1706,14 @@ async function saveAnswer(
 
             answer:
               answer
+
           },
 
           {
+
             onConflict:
               "user_id,question_id,year"
+
           }
 
         );
@@ -1334,6 +1732,7 @@ async function saveAnswer(
       );
 
       return;
+
     }
 
 
@@ -1343,6 +1742,7 @@ async function saveAnswer(
 
 
     await loadAnswers();
+
 
     renderQuestions();
 
@@ -1385,18 +1785,30 @@ function getMyAnswer(
 
 
   return (
+
     answers.find(
       answer =>
 
         answer.user_id ===
         currentUser.id &&
 
-        Number(answer.question_id) ===
-        Number(questionId) &&
+        Number(
+          answer.question_id
+        ) ===
+        Number(
+          questionId
+        ) &&
 
-        Number(answer.year) ===
-        Number(CURRENT_YEAR)
-    ) || null
+        Number(
+          answer.year
+        ) ===
+        Number(
+          CURRENT_YEAR
+        )
+    )
+
+    || null
+
   );
 
 }
@@ -1416,18 +1828,30 @@ function getPartnerAnswer(
 
 
   return (
+
     answers.find(
       answer =>
 
         answer.user_id !==
         currentUser.id &&
 
-        Number(answer.question_id) ===
-        Number(questionId) &&
+        Number(
+          answer.question_id
+        ) ===
+        Number(
+          questionId
+        ) &&
 
-        Number(answer.year) ===
-        Number(CURRENT_YEAR)
-    ) || null
+        Number(
+          answer.year
+        ) ===
+        Number(
+          CURRENT_YEAR
+        )
+    )
+
+    || null
+
   );
 
 }
@@ -1456,7 +1880,10 @@ function updateStats() {
     total === 0
       ? 0
       : Math.round(
-          (answered / total) * 100
+          (
+            answered /
+            total
+          ) * 100
         );
 
 
@@ -1495,56 +1922,14 @@ function updateStats() {
 
 
 /* =====================================================
-   FİLTRELER
-===================================================== */
-
-function setupFilters() {
-
-  document
-    .querySelectorAll(
-      ".filter-btn"
-    )
-    .forEach(button => {
-
-      button.addEventListener(
-        "click",
-        () => {
-
-          document
-            .querySelectorAll(
-              ".filter-btn"
-            )
-            .forEach(btn =>
-              btn.classList.remove(
-                "active"
-              )
-            );
-
-
-          button.classList.add(
-            "active"
-          );
-
-
-          currentFilter =
-            button.dataset.filter;
-
-
-          renderQuestions();
-
-        }
-      );
-
-    });
-
-}
-
-
-/* =====================================================
    DEVAM ET
 ===================================================== */
 
 function continueFromWhereLeft() {
+
+  /*
+    Her zaman ilk cevapsız soruyu bul.
+  */
 
   const firstUnanswered =
     questions.find(
@@ -1557,26 +1942,55 @@ function continueFromWhereLeft() {
 
   if (firstUnanswered) {
 
-    const element =
-      document.getElementById(
-        `answer-${firstUnanswered.id}`
-      );
+    /*
+      Önce o sorunun kategorisine geç.
+    */
+
+    currentCategory =
+      firstUnanswered.category ||
+      "all";
 
 
-    if (element) {
-
-      element.scrollIntoView({
-        behavior: "smooth",
-        block: "center"
-      });
+    currentStatus =
+      "all";
 
 
-      setTimeout(
-        () => element.focus(),
-        500
-      );
+    updateActiveCategoryButton();
 
-    }
+    updateActiveStatusButton();
+
+
+    renderQuestions();
+
+
+    setTimeout(
+      () => {
+
+        const element =
+          document.getElementById(
+            `answer-${firstUnanswered.id}`
+          );
+
+
+        if (element) {
+
+          element.scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+          });
+
+
+          setTimeout(
+            () =>
+              element.focus(),
+            500
+          );
+
+        }
+
+      },
+      100
+    );
 
 
     return;
@@ -1602,6 +2016,57 @@ function continueFromWhereLeft() {
   showToast(
     "Tüm soruları cevapladın! ❤️"
   );
+
+}
+
+
+/* =====================================================
+   AKTİF KATEGORİ BUTONU
+===================================================== */
+
+function updateActiveCategoryButton() {
+
+  if (!categoryFilterContainer) {
+    return;
+  }
+
+
+  categoryFilterContainer
+    .querySelectorAll(
+      ".category-filter"
+    )
+    .forEach(button => {
+
+      button.classList.toggle(
+        "active",
+        button.dataset.category ===
+        currentCategory
+      );
+
+    });
+
+}
+
+
+/* =====================================================
+   AKTİF DURUM BUTONU
+===================================================== */
+
+function updateActiveStatusButton() {
+
+  document
+    .querySelectorAll(
+      ".status-filter"
+    )
+    .forEach(button => {
+
+      button.classList.toggle(
+        "active",
+        button.dataset.status ===
+        currentStatus
+      );
+
+    });
 
 }
 
@@ -1638,7 +2103,12 @@ function showLoginScreen() {
 
   answers = [];
 
+  currentCategory = "all";
+
+  currentStatus = "all";
+
   isLoadingApplication = false;
+
 
   clearLoginError();
 
@@ -1670,45 +2140,18 @@ function showApplicationError(
 
   questionList.innerHTML = `
 
-    <div
-      class="empty"
-      style="
-        border:1px solid #e9dfdb;
-        border-radius:20px;
-        background:white;
-        padding:35px 25px;
-      "
-    >
+    <div class="empty error-empty">
 
-      <div style="
-        font-size:42px;
-        margin-bottom:15px;
-      ">
+      <div class="empty-icon">
         ⚠️
       </div>
 
-
-      <h3 style="
-        margin:0 0 12px;
-        color:#843f4c;
-      ">
-
+      <h3>
         ${escapeHtml(title)}
-
       </h3>
 
-
-      <p style="
-        white-space:pre-line;
-        text-align:left;
-        max-width:700px;
-        margin:0 auto;
-        line-height:1.7;
-        font-size:13px;
-      ">
-
+      <p>
         ${escapeHtml(message)}
-
       </p>
 
     </div>
@@ -1773,7 +2216,11 @@ async function logout() {
       );
 
       return;
+
     }
+
+
+    stopMusic();
 
 
     currentUser = null;
@@ -1789,12 +2236,16 @@ async function logout() {
 
 
     if (emailInput) {
+
       emailInput.value = "";
+
     }
 
 
     if (passwordInput) {
+
       passwordInput.value = "";
+
     }
 
 
@@ -1809,6 +2260,246 @@ async function logout() {
       "Logout exception:",
       error
     );
+
+  }
+
+}
+
+
+/* =====================================================
+   MÜZİK
+===================================================== */
+
+function setupMusic() {
+
+  if (!backgroundMusic) {
+    return;
+  }
+
+
+  const savedPreference =
+    localStorage.getItem(
+      "gk_music_enabled"
+    );
+
+
+  if (
+    savedPreference === "false"
+  ) {
+
+    musicEnabled = false;
+
+  }
+
+
+  updateMusicButton();
+
+
+  if (musicBtn) {
+
+    musicBtn.addEventListener(
+      "click",
+      toggleMusic
+    );
+
+  }
+
+
+  /*
+    Tarayıcı otomatik oynatmayı engellerse,
+    uygulamadaki ilk kullanıcı etkileşiminde
+    tekrar deniyoruz.
+  */
+
+  document.addEventListener(
+    "click",
+    () => {
+
+      if (
+        currentUser &&
+        musicEnabled &&
+        backgroundMusic.paused
+      ) {
+
+        attemptStartMusic();
+
+      }
+
+    },
+    {
+      once: false
+    }
+  );
+
+}
+
+
+function attemptStartMusic() {
+
+  if (
+    !backgroundMusic ||
+    !musicEnabled ||
+    !currentUser
+  ) {
+
+    return;
+
+  }
+
+
+  backgroundMusic.volume =
+    0.18;
+
+
+  const promise =
+    backgroundMusic.play();
+
+
+  if (
+    promise &&
+    typeof promise.catch ===
+      "function"
+  ) {
+
+    promise
+      .then(() => {
+
+        updateMusicButton();
+
+      })
+      .catch(() => {
+
+        /*
+          Tarayıcı autoplay'i engellerse
+          kullanıcı ♫ butonuna basınca
+          başlayacak.
+        */
+
+        updateMusicButton();
+
+      });
+
+  }
+
+}
+
+
+function toggleMusic() {
+
+  if (!backgroundMusic) {
+    return;
+  }
+
+
+  if (
+    backgroundMusic.paused
+  ) {
+
+    musicEnabled = true;
+
+    localStorage.setItem(
+      "gk_music_enabled",
+      "true"
+    );
+
+
+    backgroundMusic.volume =
+      0.18;
+
+
+    backgroundMusic
+      .play()
+      .then(() => {
+
+        showToast(
+          "Müzik açıldı 🎵"
+        );
+
+        updateMusicButton();
+
+      })
+      .catch(() => {
+
+        showToast(
+          "Müziği başlatmak için tekrar dokun 🎵"
+        );
+
+      });
+
+
+  } else {
+
+    musicEnabled = false;
+
+    localStorage.setItem(
+      "gk_music_enabled",
+      "false"
+    );
+
+
+    backgroundMusic.pause();
+
+
+    showToast(
+      "Müzik kapatıldı."
+    );
+
+
+    updateMusicButton();
+
+  }
+
+}
+
+
+function stopMusic() {
+
+  if (!backgroundMusic) {
+    return;
+  }
+
+
+  backgroundMusic.pause();
+
+  backgroundMusic.currentTime =
+    0;
+
+}
+
+
+function updateMusicButton() {
+
+  if (!musicBtn) {
+    return;
+  }
+
+
+  if (
+    backgroundMusic &&
+    !backgroundMusic.paused
+  ) {
+
+    musicBtn.textContent =
+      "🔊";
+
+    musicBtn.classList.add(
+      "playing"
+    );
+
+    musicBtn.title =
+      "Müziği kapat";
+
+  } else {
+
+    musicBtn.textContent =
+      "♫";
+
+    musicBtn.classList.remove(
+      "playing"
+    );
+
+    musicBtn.title =
+      "Müziği aç";
 
   }
 
@@ -1917,6 +2608,9 @@ supabaseClient.auth.onAuthStateChange(
       event ===
       "SIGNED_OUT"
     ) {
+
+      stopMusic();
+
 
       currentUser = null;
 
