@@ -743,3 +743,81 @@ footer {
   }
 
 }
+/* =====================================================
+   KATEGORİLER
+===================================================== */
+
+.question-category {
+  margin-bottom: 42px;
+}
+
+.category-heading {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 35px 0 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+.category-icon {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border-radius: 15px;
+  background: var(--soft);
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.category-heading .eyebrow {
+  margin-bottom: 3px;
+}
+
+.category-heading h3 {
+  margin: 0;
+  font-family: "Playfair Display", serif;
+  font-size: 26px;
+}
+
+.category-questions {
+  display: block;
+}
+
+.question-card {
+  transition:
+    transform .2s ease,
+    box-shadow .2s ease,
+    border-color .2s ease;
+}
+
+.question-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 35px rgba(78,45,38,.07);
+  border-color: #dfd1cc;
+}
+
+.question-number {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+@media (max-width: 700px) {
+
+  .category-heading {
+    margin-top: 28px;
+  }
+
+  .category-heading h3 {
+    font-size: 23px;
+  }
+
+  .category-icon {
+    width: 43px;
+    height: 43px;
+    font-size: 21px;
+  }
+
+}
