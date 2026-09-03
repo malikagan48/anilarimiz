@@ -16,8 +16,20 @@ const supabaseClient =
    AYARLAR
 ===================================================== */
 
-const CURRENT_YEAR =
-  new Date().getFullYear();
+const START_YEAR = 2026;
+const DEFAULT_YEAR = 2026;
+
+let selectedYear = DEFAULT_YEAR;
+
+function getAvailableYears() {
+  const currentYear = new Date().getFullYear();
+  const lastYear = Math.max(currentYear + 1, START_YEAR + 1);
+
+  return Array.from(
+    { length: lastYear - START_YEAR + 1 },
+    (_, index) => START_YEAR + index
+  );
+}
 
 let currentUser = null;
 let currentProfile = null;
@@ -148,6 +160,9 @@ const categoryFilterContainer =
       )
     : null;
 
+const yearSelect =
+  document.getElementById("yearSelect");
+
 const backgroundMusic =
   document.getElementById(
     "backgroundMusic"
@@ -185,6 +200,7 @@ async function init() {
   showLoginScreen();
 
   setYear();
+  buildYearSelector();
 
   setupPersonButtons();
 
@@ -339,7 +355,7 @@ function setYear() {
   if (heroYear) {
 
     heroYear.textContent =
-      CURRENT_YEAR;
+      selectedYear;
 
   }
 
@@ -347,7 +363,134 @@ function setYear() {
   if (yearDisplay) {
 
     yearDisplay.textContent =
-      CURRENT_YEAR;
+      selectedYear;
+
+  }
+
+
+  if (yearSelect) {
+
+    yearSelect.value =
+      String(selectedYear);
+
+  }
+
+}
+
+
+function buildYearSelector() {
+
+  if (!yearSelect) {
+
+    return;
+
+  }
+
+
+  const years =
+    getAvailableYears();
+
+
+  yearSelect.innerHTML =
+    years
+      .map(
+        year =>
+          `<option value="${year}">${year} cevapları</option>`
+      )
+      .join("");
+
+
+  yearSelect.value =
+    String(selectedYear);
+
+
+  yearSelect.addEventListener(
+    "change",
+    async () => {
+
+      const nextYear =
+        Number(
+          yearSelect.value
+        );
+
+
+      if (
+        !Number.isInteger(
+          nextYear
+        )
+      ) {
+
+        return;
+
+      }
+
+
+      selectedYear =
+        nextYear;
+
+      currentCategory =
+        "all";
+
+      currentStatus =
+        "all";
+
+
+      updateYearUI();
+
+      updateActiveCategoryButton();
+
+      updateActiveStatusButton();
+
+
+      questionList.innerHTML = `
+        <div class="loading-state">
+          <div class="loading-heart">♥</div>
+          <p>${selectedYear} cevapları yükleniyor...</p>
+        </div>
+      `;
+
+
+      const result =
+        await loadAnswers();
+
+
+      if (!result.success) {
+
+        answers = [];
+
+        showToast(
+          "Cevaplar yüklenemedi: " +
+          result.message
+        );
+
+      }
+
+
+      renderQuestions();
+
+      updateStats();
+
+    }
+  );
+
+}
+
+
+function updateYearUI() {
+
+  setYear();
+
+
+  const yearLabel =
+    document.getElementById(
+      "yearLabel"
+    );
+
+
+  if (yearLabel) {
+
+    yearLabel.textContent =
+      `${selectedYear} cevapları`;
 
   }
 
@@ -366,35 +509,37 @@ function setupPersonButtons() {
     );
 
 
-  buttons.forEach(button => {
+  buttons.forEach(
+    button => {
 
-    button.addEventListener(
-      "click",
-      function () {
+      button.addEventListener(
+        "click",
+        function () {
 
-        buttons.forEach(
-          btn =>
-            btn.classList.remove(
-              "active"
-            )
-        );
-
-
-        this.classList.add(
-          "active"
-        );
+          buttons.forEach(
+            btn =>
+              btn.classList.remove(
+                "active"
+              )
+          );
 
 
-        selectedPerson =
-          this.dataset.person;
+          this.classList.add(
+            "active"
+          );
 
 
-        updateLoginButton();
+          selectedPerson =
+            this.dataset.person;
 
-      }
-    );
 
-  });
+          updateLoginButton();
+
+        }
+      );
+
+    }
+  );
 
 
   const gulButton =
@@ -412,11 +557,14 @@ function setupPersonButtons() {
         )
     );
 
+
     gulButton.classList.add(
       "active"
     );
 
-    selectedPerson = "gul";
+
+    selectedPerson =
+      "gul";
 
   }
 
@@ -433,7 +581,9 @@ function setupPersonButtons() {
 function updateLoginButton() {
 
   if (!loginBtn) {
+
     return;
+
   }
 
 
@@ -470,7 +620,10 @@ async function login() {
       : "";
 
 
-  if (!email || !password) {
+  if (
+    !email ||
+    !password
+  ) {
 
     showLoginError(
       "E-posta ve şifre alanlarını doldurmalısın."
@@ -481,7 +634,9 @@ async function login() {
   }
 
 
-  loginBtn.disabled = true;
+  loginBtn.disabled =
+    true;
+
 
   loginBtn.innerHTML =
     "Giriş yapılıyor...";
@@ -506,10 +661,12 @@ async function login() {
         error
       );
 
+
       showLoginError(
         "Giriş başarısız: " +
         error.message
       );
+
 
       return;
 
@@ -521,6 +678,7 @@ async function login() {
       showLoginError(
         "Kullanıcı bilgisi alınamadı."
       );
+
 
       return;
 
@@ -534,11 +692,6 @@ async function login() {
     await loadApplication();
 
 
-    /*
-      Tarayıcı izin verirse
-      login sonrasında müziği başlat.
-    */
-
     attemptStartMusic();
 
 
@@ -549,6 +702,7 @@ async function login() {
       error
     );
 
+
     showLoginError(
       "Beklenmeyen giriş hatası: " +
       error.message
@@ -557,7 +711,9 @@ async function login() {
 
   } finally {
 
-    loginBtn.disabled = false;
+    loginBtn.disabled =
+      false;
+
 
     updateLoginButton();
 
@@ -573,16 +729,21 @@ async function login() {
 async function loadApplication() {
 
   if (!currentUser) {
+
     return;
+
   }
 
 
   if (isLoadingApplication) {
+
     return;
+
   }
 
 
-  isLoadingApplication = true;
+  isLoadingApplication =
+    true;
 
 
   try {
@@ -590,6 +751,7 @@ async function loadApplication() {
     loginScreen.classList.add(
       "hidden"
     );
+
 
     appShell.classList.remove(
       "hidden"
@@ -609,6 +771,7 @@ async function loadApplication() {
         profileResult.message
       );
 
+
       return;
 
     }
@@ -627,6 +790,7 @@ async function loadApplication() {
         questionResult.message
       );
 
+
       return;
 
     }
@@ -644,6 +808,7 @@ async function loadApplication() {
         "Cevaplar yüklenemedi:",
         answerResult.message
       );
+
 
       answers = [];
 
@@ -666,6 +831,7 @@ async function loadApplication() {
       error
     );
 
+
     showApplicationError(
       "Uygulama yüklenemedi",
       error.message
@@ -674,7 +840,8 @@ async function loadApplication() {
 
   } finally {
 
-    isLoadingApplication = false;
+    isLoadingApplication =
+      false;
 
   }
 
@@ -692,7 +859,7 @@ async function loadProfile() {
     return {
       success: false,
       message:
-        "Aktif kullanıcı bulunamadı."
+        "Kullanıcı bulunamadı."
     };
 
   }
@@ -721,23 +888,17 @@ async function loadProfile() {
         error
       );
 
+
       return {
-
         success: false,
-
         message:
           `Supabase profil hatası:
-
 ${error.message}
 
 Kod: ${error.code || "yok"}
 
 Detay:
-${error.details || "yok"}
-
-Hint:
-${error.hint || "yok"}`
-
+${error.details || "yok"}`
       };
 
     }
@@ -746,18 +907,14 @@ ${error.hint || "yok"}`
     if (!data) {
 
       return {
-
         success: false,
-
         message:
           `Bu kullanıcı profiles tablosunda bulunamadı.
 
 Giriş yapan User ID:
-
 ${currentUser.id}
 
 profiles.id ile auth.users.id aynı olmalı.`
-
       };
 
     }
@@ -777,7 +934,8 @@ profiles.id ile auth.users.id aynı olmalı.`
 
     return {
       success: false,
-      message: error.message
+      message:
+        error.message
     };
 
   }
@@ -821,10 +979,9 @@ async function loadQuestions() {
         error
       );
 
+
       return {
-
         success: false,
-
         message:
           `Supabase soru hatası:
 
@@ -834,7 +991,6 @@ Kod: ${error.code || "yok"}
 
 Detay:
 ${error.details || "yok"}`
-
       };
 
     }
@@ -860,7 +1016,8 @@ ${error.details || "yok"}`
 
     return {
       success: false,
-      message: error.message
+      message:
+        error.message
     };
 
   }
@@ -896,7 +1053,7 @@ async function loadAnswers() {
         .select("*")
         .eq(
           "year",
-          CURRENT_YEAR
+          selectedYear
         );
 
 
@@ -907,9 +1064,11 @@ async function loadAnswers() {
         error
       );
 
+
       return {
         success: false,
-        message: error.message
+        message:
+          error.message
       };
 
     }
@@ -929,7 +1088,8 @@ async function loadAnswers() {
 
     return {
       success: false,
-      message: error.message
+      message:
+        error.message
     };
 
   }
@@ -944,7 +1104,9 @@ async function loadAnswers() {
 function updateUserInterface() {
 
   if (!currentProfile) {
+
     return;
+
   }
 
 
@@ -971,7 +1133,7 @@ function updateUserInterface() {
   }
 
 
-  setYear();
+  updateYearUI();
 
 }
 
@@ -983,33 +1145,16 @@ function updateUserInterface() {
 function buildCategoryFilters() {
 
   if (!categoryFilterContainer) {
+
     return;
+
   }
 
 
-  const categories = [];
-
-
-  questions.forEach(question => {
-
-    const category =
-      question.category ||
-      "Diğer";
-
-
-    if (
-      !categories.includes(
-        category
-      )
-    ) {
-
-      categories.push(
-        category
-      );
-
-    }
-
-  });
+  const categories =
+    Object.keys(
+      CATEGORY_CONFIG
+    );
 
 
   categoryFilterContainer.innerHTML = "";
@@ -1021,18 +1166,17 @@ function buildCategoryFilters() {
     );
 
 
-  allButton.type = "button";
+  allButton.type =
+    "button";
+
 
   allButton.className =
-    "category-filter" +
-    (
-      currentCategory === "all"
-        ? " active"
-        : ""
-    );
+    "category-filter active";
+
 
   allButton.dataset.category =
     "all";
+
 
   allButton.textContent =
     "❤️ Tümü";
@@ -1057,13 +1201,7 @@ function buildCategoryFilters() {
 
 
       button.className =
-        "category-filter" +
-        (
-          currentCategory ===
-          category
-            ? " active"
-            : ""
-        );
+        "category-filter";
 
 
       button.dataset.category =
@@ -1105,7 +1243,9 @@ function buildCategoryFilters() {
 function setupCategoryFilterEvents() {
 
   if (!categoryFilterContainer) {
+
     return;
+
   }
 
 
@@ -1113,47 +1253,51 @@ function setupCategoryFilterEvents() {
     .querySelectorAll(
       ".category-filter"
     )
-    .forEach(button => {
+    .forEach(
+      button => {
 
-      button.addEventListener(
-        "click",
-        () => {
+        button.addEventListener(
+          "click",
+          () => {
 
-          currentCategory =
-            button.dataset.category;
+            currentCategory =
+              button.dataset.category;
 
 
-          categoryFilterContainer
-            .querySelectorAll(
-              ".category-filter"
-            )
-            .forEach(btn =>
-              btn.classList.remove(
-                "active"
+            categoryFilterContainer
+              .querySelectorAll(
+                ".category-filter"
               )
+              .forEach(
+                btn =>
+                  btn.classList.remove(
+                    "active"
+                  )
+              );
+
+
+            button.classList.add(
+              "active"
             );
 
 
-          button.classList.add(
-            "active"
-          );
+            renderQuestions();
 
 
-          renderQuestions();
+            document
+              .getElementById(
+                "questions"
+              )
+              ?.scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+              });
 
-          document
-            .getElementById(
-              "questions"
-            )
-            ?.scrollIntoView({
-              behavior: "smooth",
-              block: "start"
-            });
+          }
+        );
 
-        }
-      );
-
-    });
+      }
+    );
 
 }
 
@@ -1168,38 +1312,41 @@ function setupStatusFilters() {
     .querySelectorAll(
       ".status-filter"
     )
-    .forEach(button => {
+    .forEach(
+      button => {
 
-      button.addEventListener(
-        "click",
-        () => {
+        button.addEventListener(
+          "click",
+          () => {
 
-          currentStatus =
-            button.dataset.status;
+            currentStatus =
+              button.dataset.status;
 
 
-          document
-            .querySelectorAll(
-              ".status-filter"
-            )
-            .forEach(btn =>
-              btn.classList.remove(
-                "active"
+            document
+              .querySelectorAll(
+                ".status-filter"
               )
+              .forEach(
+                btn =>
+                  btn.classList.remove(
+                    "active"
+                  )
+              );
+
+
+            button.classList.add(
+              "active"
             );
 
 
-          button.classList.add(
-            "active"
-          );
+            renderQuestions();
 
+          }
+        );
 
-          renderQuestions();
-
-        }
-      );
-
-    });
+      }
+    );
 
 }
 
@@ -1211,7 +1358,9 @@ function setupStatusFilters() {
 function renderQuestions() {
 
   if (!questionList) {
+
     return;
+
   }
 
 
@@ -1222,7 +1371,8 @@ function renderQuestions() {
   /* KATEGORİ */
 
   if (
-    currentCategory !== "all"
+    currentCategory !==
+    "all"
   ) {
 
     visibleQuestions =
@@ -1238,7 +1388,8 @@ function renderQuestions() {
   /* DURUM */
 
   if (
-    currentStatus === "answered"
+    currentStatus ===
+    "answered"
   ) {
 
     visibleQuestions =
@@ -1253,7 +1404,8 @@ function renderQuestions() {
 
 
   if (
-    currentStatus === "unanswered"
+    currentStatus ===
+    "unanswered"
   ) {
 
     visibleQuestions =
@@ -1267,10 +1419,11 @@ function renderQuestions() {
   }
 
 
-  if (!visibleQuestions.length) {
+  if (
+    !visibleQuestions.length
+  ) {
 
     questionList.innerHTML = `
-
       <div class="empty">
 
         <div class="empty-icon">
@@ -1296,8 +1449,8 @@ function renderQuestions() {
         </p>
 
       </div>
-
     `;
+
 
     return;
 
@@ -1332,11 +1485,8 @@ function renderQuestions() {
       if (!group) {
 
         group = {
-
           category,
-
           questions: []
-
         };
 
 
@@ -1374,22 +1524,82 @@ function renderQuestions() {
     .querySelectorAll(
       ".save-btn"
     )
-    .forEach(button => {
+    .forEach(
+      button => {
 
-      button.addEventListener(
-        "click",
-        () => {
+        button.addEventListener(
+          "click",
+          () => {
 
-          saveAnswer(
-            Number(
-              button.dataset.questionId
-            )
+            saveAnswer(
+              Number(
+                button.dataset.questionId
+              )
+            );
+
+          }
+        );
+
+      }
+    );
+
+
+  document
+    .querySelectorAll(
+      ".answer-area"
+    )
+    .forEach(
+      textarea => {
+
+        const questionId =
+          textarea.id.replace(
+            "answer-",
+            ""
           );
 
-        }
-      );
 
-    });
+        const counter =
+          document.querySelector(
+            `.char-count[data-count-for="${questionId}"]`
+          );
+
+
+        const updateCounter = () => {
+
+          if (
+            textarea.value.length >
+            500
+          ) {
+
+            textarea.value =
+              textarea.value.slice(
+                0,
+                500
+              );
+
+          }
+
+
+          if (counter) {
+
+            counter.textContent =
+              `${textarea.value.length} / 500`;
+
+          }
+
+        };
+
+
+        textarea.addEventListener(
+          "input",
+          updateCounter
+        );
+
+
+        updateCounter();
+
+      }
+    );
 
 }
 
@@ -1460,27 +1670,17 @@ function createCategory(
   `;
 
 }
-
-
 /* =====================================================
    SORU KARTI
 ===================================================== */
 
-function createQuestionCard(
-  question
-) {
+function createQuestionCard(question) {
 
   const myAnswer =
-    getMyAnswer(
-      question.id
-    );
-
+    getMyAnswer(question.id);
 
   const partnerAnswer =
-    getPartnerAnswer(
-      question.id
-    );
-
+    getPartnerAnswer(question.id);
 
   const answered =
     !!myAnswer;
@@ -1520,8 +1720,7 @@ function createQuestionCard(
 
         <span>
           ${String(
-            question.sort_order ??
-            ""
+            question.sort_order ?? ""
           ).padStart(2, "0")}
         </span>
 
@@ -1540,6 +1739,7 @@ function createQuestionCard(
       <textarea
         class="answer-area"
         id="answer-${question.id}"
+        maxlength="500"
         placeholder="${escapeHtml(
           placeholder
         )}"
@@ -1550,6 +1750,22 @@ function createQuestionCard(
             )
           : ""
       }</textarea>
+
+
+      <div class="answer-meta">
+
+        <span
+          class="char-count"
+          data-count-for="${question.id}"
+        >
+          ${
+            myAnswer?.answer
+              ? myAnswer.answer.length
+              : 0
+          } / 500
+        </span>
+
+      </div>
 
 
       <div class="answer-actions">
@@ -1624,9 +1840,7 @@ function createQuestionCard(
    CEVAP KAYDET
 ===================================================== */
 
-async function saveAnswer(
-  questionId
-) {
+async function saveAnswer(questionId) {
 
   if (!currentUser) {
 
@@ -1646,7 +1860,9 @@ async function saveAnswer(
 
 
   if (!textarea) {
+
     return;
+
   }
 
 
@@ -1667,6 +1883,17 @@ async function saveAnswer(
   }
 
 
+  if (answer.length > 500) {
+
+    showToast(
+      "Cevabın en fazla 500 karakter olabilir."
+    );
+
+    return;
+
+  }
+
+
   const button =
     document.querySelector(
       `.save-btn[data-question-id="${questionId}"]`
@@ -1674,11 +1901,14 @@ async function saveAnswer(
 
 
   if (!button) {
+
     return;
+
   }
 
 
-  button.disabled = true;
+  button.disabled =
+    true;
 
   button.textContent =
     "Kaydediliyor...";
@@ -1702,7 +1932,7 @@ async function saveAnswer(
               questionId,
 
             year:
-              CURRENT_YEAR,
+              selectedYear,
 
             answer:
               answer
@@ -1726,6 +1956,7 @@ async function saveAnswer(
         error
       );
 
+
       showToast(
         "Cevap kaydedilemedi: " +
         error.message
@@ -1737,7 +1968,7 @@ async function saveAnswer(
 
 
     showToast(
-      "Cevabın kaydedildi ❤️"
+      `${selectedYear} cevabın kaydedildi ❤️`
     );
 
 
@@ -1756,6 +1987,7 @@ async function saveAnswer(
       error
     );
 
+
     showToast(
       "Cevap kaydedilemedi: " +
       error.message
@@ -1764,7 +1996,8 @@ async function saveAnswer(
 
   } finally {
 
-    button.disabled = false;
+    button.disabled =
+      false;
 
   }
 
@@ -1775,12 +2008,12 @@ async function saveAnswer(
    KENDİ CEVABIN
 ===================================================== */
 
-function getMyAnswer(
-  questionId
-) {
+function getMyAnswer(questionId) {
 
   if (!currentUser) {
+
     return null;
+
   }
 
 
@@ -1803,7 +2036,7 @@ function getMyAnswer(
           answer.year
         ) ===
         Number(
-          CURRENT_YEAR
+          selectedYear
         )
     )
 
@@ -1818,12 +2051,12 @@ function getMyAnswer(
    PARTNER CEVABI
 ===================================================== */
 
-function getPartnerAnswer(
-  questionId
-) {
+function getPartnerAnswer(questionId) {
 
   if (!currentUser) {
+
     return null;
+
   }
 
 
@@ -1846,7 +2079,7 @@ function getPartnerAnswer(
           answer.year
         ) ===
         Number(
-          CURRENT_YEAR
+          selectedYear
         )
     )
 
@@ -1927,10 +2160,6 @@ function updateStats() {
 
 function continueFromWhereLeft() {
 
-  /*
-    Her zaman ilk cevapsız soruyu bul.
-  */
-
   const firstUnanswered =
     questions.find(
       question =>
@@ -1941,10 +2170,6 @@ function continueFromWhereLeft() {
 
 
   if (firstUnanswered) {
-
-    /*
-      Önce o sorunun kategorisine geç.
-    */
 
     currentCategory =
       firstUnanswered.category ||
@@ -1975,8 +2200,13 @@ function continueFromWhereLeft() {
         if (element) {
 
           element.scrollIntoView({
-            behavior: "smooth",
-            block: "center"
+
+            behavior:
+              "smooth",
+
+            block:
+              "center"
+
           });
 
 
@@ -2007,14 +2237,17 @@ function continueFromWhereLeft() {
   if (questionsSection) {
 
     questionsSection.scrollIntoView({
-      behavior: "smooth"
+
+      behavior:
+        "smooth"
+
     });
 
   }
 
 
   showToast(
-    "Tüm soruları cevapladın! ❤️"
+    `${selectedYear} yılındaki tüm soruları cevapladın! ❤️`
   );
 
 }
@@ -2027,7 +2260,9 @@ function continueFromWhereLeft() {
 function updateActiveCategoryButton() {
 
   if (!categoryFilterContainer) {
+
     return;
+
   }
 
 
@@ -2035,15 +2270,17 @@ function updateActiveCategoryButton() {
     .querySelectorAll(
       ".category-filter"
     )
-    .forEach(button => {
+    .forEach(
+      button => {
 
-      button.classList.toggle(
-        "active",
-        button.dataset.category ===
-        currentCategory
-      );
+        button.classList.toggle(
+          "active",
+          button.dataset.category ===
+          currentCategory
+        );
 
-    });
+      }
+    );
 
 }
 
@@ -2058,15 +2295,17 @@ function updateActiveStatusButton() {
     .querySelectorAll(
       ".status-filter"
     )
-    .forEach(button => {
+    .forEach(
+      button => {
 
-      button.classList.toggle(
-        "active",
-        button.dataset.status ===
-        currentStatus
-      );
+        button.classList.toggle(
+          "active",
+          button.dataset.status ===
+          currentStatus
+        );
 
-    });
+      }
+    );
 
 }
 
@@ -2095,19 +2334,26 @@ function showLoginScreen() {
   }
 
 
-  currentUser = null;
+  currentUser =
+    null;
 
-  currentProfile = null;
+  currentProfile =
+    null;
 
-  questions = [];
+  questions =
+    [];
 
-  answers = [];
+  answers =
+    [];
 
-  currentCategory = "all";
+  currentCategory =
+    "all";
 
-  currentStatus = "all";
+  currentStatus =
+    "all";
 
-  isLoadingApplication = false;
+  isLoadingApplication =
+    false;
 
 
   clearLoginError();
@@ -2134,7 +2380,9 @@ function showApplicationError(
 
 
   if (!questionList) {
+
     return;
+
   }
 
 
@@ -2168,9 +2416,7 @@ function showApplicationError(
    LOGIN HATASI
 ===================================================== */
 
-function showLoginError(
-  message
-) {
+function showLoginError(message) {
 
   if (loginError) {
 
@@ -2223,13 +2469,17 @@ async function logout() {
     stopMusic();
 
 
-    currentUser = null;
+    currentUser =
+      null;
 
-    currentProfile = null;
+    currentProfile =
+      null;
 
-    questions = [];
+    questions =
+      [];
 
-    answers = [];
+    answers =
+      [];
 
 
     showLoginScreen();
@@ -2237,14 +2487,16 @@ async function logout() {
 
     if (emailInput) {
 
-      emailInput.value = "";
+      emailInput.value =
+        "";
 
     }
 
 
     if (passwordInput) {
 
-      passwordInput.value = "";
+      passwordInput.value =
+        "";
 
     }
 
@@ -2273,7 +2525,9 @@ async function logout() {
 function setupMusic() {
 
   if (!backgroundMusic) {
+
     return;
+
   }
 
 
@@ -2284,10 +2538,12 @@ function setupMusic() {
 
 
   if (
-    savedPreference === "false"
+    savedPreference ===
+    "false"
   ) {
 
-    musicEnabled = false;
+    musicEnabled =
+      false;
 
   }
 
@@ -2304,12 +2560,6 @@ function setupMusic() {
 
   }
 
-
-  /*
-    Tarayıcı otomatik oynatmayı engellerse,
-    uygulamadaki ilk kullanıcı etkileşiminde
-    tekrar deniyoruz.
-  */
 
   document.addEventListener(
     "click",
@@ -2362,22 +2612,20 @@ function attemptStartMusic() {
   ) {
 
     promise
-      .then(() => {
+      .then(
+        () => {
 
-        updateMusicButton();
+          updateMusicButton();
 
-      })
-      .catch(() => {
+        }
+      )
+      .catch(
+        () => {
 
-        /*
-          Tarayıcı autoplay'i engellerse
-          kullanıcı ♫ butonuna basınca
-          başlayacak.
-        */
+          updateMusicButton();
 
-        updateMusicButton();
-
-      });
+        }
+      );
 
   }
 
@@ -2387,7 +2635,9 @@ function attemptStartMusic() {
 function toggleMusic() {
 
   if (!backgroundMusic) {
+
     return;
+
   }
 
 
@@ -2395,7 +2645,9 @@ function toggleMusic() {
     backgroundMusic.paused
   ) {
 
-    musicEnabled = true;
+    musicEnabled =
+      true;
+
 
     localStorage.setItem(
       "gk_music_enabled",
@@ -2409,27 +2661,33 @@ function toggleMusic() {
 
     backgroundMusic
       .play()
-      .then(() => {
+      .then(
+        () => {
 
-        showToast(
-          "Müzik açıldı 🎵"
-        );
+          showToast(
+            "Müzik açıldı 🎵"
+          );
 
-        updateMusicButton();
+          updateMusicButton();
 
-      })
-      .catch(() => {
+        }
+      )
+      .catch(
+        () => {
 
-        showToast(
-          "Müziği başlatmak için tekrar dokun 🎵"
-        );
+          showToast(
+            "Müziği başlatmak için tekrar dokun 🎵"
+          );
 
-      });
+        }
+      );
 
 
   } else {
 
-    musicEnabled = false;
+    musicEnabled =
+      false;
+
 
     localStorage.setItem(
       "gk_music_enabled",
@@ -2455,11 +2713,14 @@ function toggleMusic() {
 function stopMusic() {
 
   if (!backgroundMusic) {
+
     return;
+
   }
 
 
   backgroundMusic.pause();
+
 
   backgroundMusic.currentTime =
     0;
@@ -2470,7 +2731,9 @@ function stopMusic() {
 function updateMusicButton() {
 
   if (!musicBtn) {
+
     return;
+
   }
 
 
@@ -2482,21 +2745,26 @@ function updateMusicButton() {
     musicBtn.textContent =
       "🔊";
 
+
     musicBtn.classList.add(
       "playing"
     );
 
+
     musicBtn.title =
       "Müziği kapat";
+
 
   } else {
 
     musicBtn.textContent =
       "♫";
 
+
     musicBtn.classList.remove(
       "playing"
     );
+
 
     musicBtn.title =
       "Müziği aç";
@@ -2510,12 +2778,12 @@ function updateMusicButton() {
    TOAST
 ===================================================== */
 
-function showToast(
-  message
-) {
+function showToast(message) {
 
   if (!toast) {
+
     return;
+
   }
 
 
@@ -2552,9 +2820,7 @@ function showToast(
    HTML GÜVENLİĞİ
 ===================================================== */
 
-function escapeHtml(
-  value
-) {
+function escapeHtml(value) {
 
   return String(
     value ?? ""
@@ -2612,13 +2878,17 @@ supabaseClient.auth.onAuthStateChange(
       stopMusic();
 
 
-      currentUser = null;
+      currentUser =
+        null;
 
-      currentProfile = null;
+      currentProfile =
+        null;
 
-      questions = [];
+      questions =
+        [];
 
-      answers = [];
+      answers =
+        [];
 
 
       showLoginScreen();
@@ -2626,4 +2896,266 @@ supabaseClient.auth.onAuthStateChange(
     }
 
   }
+);
+/* =====================================================
+   TEXTAREA EVENTLERİ
+   500 KARAKTER SAYACI
+===================================================== */
+
+function setupAnswerTextareas() {
+
+  document
+    .querySelectorAll(
+      ".answer-area"
+    )
+    .forEach(
+      textarea => {
+
+        const questionId =
+          textarea.id.replace(
+            "answer-",
+            ""
+          );
+
+
+        const counter =
+          document.querySelector(
+            `.char-count[data-count-for="${questionId}"]`
+          );
+
+
+        const updateCounter = () => {
+
+          if (
+            textarea.value.length >
+            500
+          ) {
+
+            textarea.value =
+              textarea.value.slice(
+                0,
+                500
+              );
+
+          }
+
+
+          if (counter) {
+
+            counter.textContent =
+              `${textarea.value.length} / 500`;
+
+          }
+
+        };
+
+
+        textarea.addEventListener(
+          "input",
+          updateCounter
+        );
+
+
+        updateCounter();
+
+      }
+    );
+
+}
+
+
+/* =====================================================
+   SAYFA GÖRÜNÜRLÜĞÜ
+===================================================== */
+
+function refreshApplication() {
+
+  if (!currentUser) {
+
+    showLoginScreen();
+
+    return;
+
+  }
+
+
+  renderQuestions();
+
+  updateStats();
+
+  updateUserInterface();
+
+}
+
+
+/* =====================================================
+   SAYFA YENİDEN GÖRÜNÜR OLDUĞUNDA
+===================================================== */
+
+document.addEventListener(
+  "visibilitychange",
+  () => {
+
+    if (
+      document.visibilityState ===
+      "visible"
+    ) {
+
+      if (
+        currentUser &&
+        musicEnabled &&
+        backgroundMusic &&
+        backgroundMusic.paused
+      ) {
+
+        attemptStartMusic();
+
+      }
+
+    }
+
+  }
+);
+
+
+/* =====================================================
+   GLOBAL HATA YAKALAMA
+===================================================== */
+
+window.addEventListener(
+  "error",
+  event => {
+
+    console.error(
+      "GLOBAL JS HATASI:",
+      event.error ||
+      event.message
+    );
+
+  }
+);
+
+
+/* =====================================================
+   PROMISE HATALARI
+===================================================== */
+
+window.addEventListener(
+  "unhandledrejection",
+  event => {
+
+    console.error(
+      "UNHANDLED PROMISE:",
+      event.reason
+    );
+
+  }
+);
+
+
+/* =====================================================
+   SUPABASE SESSION DEĞİŞİKLİĞİ
+===================================================== */
+
+supabaseClient.auth.onAuthStateChange(
+  (
+    event,
+    session
+  ) => {
+
+    if (
+      event ===
+      "SIGNED_IN"
+    ) {
+
+      if (session?.user) {
+
+        currentUser =
+          session.user;
+
+      }
+
+    }
+
+
+    if (
+      event ===
+      "TOKEN_REFRESHED"
+    ) {
+
+      if (session?.user) {
+
+        currentUser =
+          session.user;
+
+      }
+
+    }
+
+
+    if (
+      event ===
+      "SIGNED_OUT"
+    ) {
+
+      currentUser =
+        null;
+
+      currentProfile =
+        null;
+
+      questions =
+        [];
+
+      answers =
+        [];
+
+      stopMusic();
+
+      showLoginScreen();
+
+    }
+
+  }
+);
+
+
+/* =====================================================
+   İLK YÜKLEME SON KONTROL
+===================================================== */
+
+console.log(
+  "✓ script.js hazır"
+);
+
+console.log(
+  "✓ Supabase bağlantısı hazır"
+);
+
+console.log(
+  "✓ Gül / Kağan seçimi hazır"
+);
+
+console.log(
+  "✓ Kategori filtreleri hazır"
+);
+
+console.log(
+  "✓ Durum filtreleri hazır"
+);
+
+console.log(
+  "✓ Yıl sistemi hazır"
+);
+
+console.log(
+  "✓ Cevap sistemi hazır"
+);
+
+console.log(
+  "✓ Müzik sistemi hazır"
+);
+
+console.log(
+  "✓ 500 karakter sınırı hazır"
 );
