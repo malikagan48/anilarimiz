@@ -1,13 +1,13 @@
 :root { 
-  --bg: #faf7f5;
+  --bg: #f4e5e7;
   --card: rgba(255,255,255,.88);
   --text: #292322;
   --muted: #817774;
   --line: #e9dfdb;
   --accent: #a95765;
   --accent-dark: #843f4c;
-  --soft: #f3e8e6;
-  --shadow: 0 18px 55px rgba(78,45,38,.09);
+  --soft: #f5e8e9;
+  --shadow: 0 18px 55px rgba(101,55,62,.10);
 }
 
 * {
@@ -58,13 +58,13 @@ button {
 .ambient-one {
   top: -160px;
   left: -120px;
-  background: #efd7d9;
+  background: #e7c2c8;
 }
 
 .ambient-two {
   right: -180px;
   top: 35%;
-  background: #eaded1;
+  background: #ead0d4;
 }
 
 
@@ -513,11 +513,43 @@ button {
 }
 
 .year-pill {
-  padding: 10px 15px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 10px 7px 13px;
   background: var(--soft);
   color: var(--accent);
+  border: 1px solid rgba(169,87,101,.14);
   border-radius: 30px;
   font-weight: 700;
+}
+
+.year-label {
+  font-size: 9px;
+  letter-spacing: .12em;
+  opacity: .75;
+}
+
+.year-pill select {
+  appearance: none;
+  -webkit-appearance: none;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  padding-right: 18px;
+  background-image:
+    linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position:
+    calc(100% - 9px) 52%,
+    calc(100% - 4px) 52%;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
 }
 
 
@@ -684,6 +716,30 @@ button {
 .answer-area:focus {
   border-color: var(--accent);
   background: white;
+}
+
+.answer-meta {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 7px;
+}
+
+.char-count {
+  color: var(--muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.loading-state {
+  padding: 45px 20px;
+  text-align: center;
+  color: var(--muted);
+}
+
+.loading-heart {
+  color: var(--accent);
+  font-size: 28px;
+  margin-bottom: 8px;
 }
 
 .answer-actions {
